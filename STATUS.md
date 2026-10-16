@@ -1,12 +1,12 @@
 # STATUS — NPU Offload
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
-- **State**: idle
-- **Updated**: 2026-10-16 10:39+09:00
+- **State**: active
+- **Updated**: 2026-10-16 13:42+09:00
 - **Agent**: claude@etri-ESC8000-E11
-- **Task**: NPUOFF-1 (done)
-- **Last result**: STATUS.md 부트스트랩 완료: Solar-100B bf16 2xRNGD 정확 모드 단일 요청 30.7-32.1 ms/tok (31-33 tok/s), MOVDIR64B 업로드로 약 30.0ms
-- **Next**: prefill(P4) 설계와 배치 서빙(P3/P5) 착수, 측정 결과를 experiments/에 기록
+- **Task**: Speculative decoding for Solar
+- **Last result**: EAGLE-3 v1 (2.78M chat tokens): tau 1.42 on Solar's own generations (too low); v2 online training on 20.3M tokens with reasoning traces running on GPU1
+- **Next**: eval v2 checkpoints; if tau >= 2.5 build T>1 verify kernels
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,22 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-16 13:42+09:00 — Speculative decoding for Solar
+
+- Result: EAGLE-3 v1 (2.78M chat tokens): tau 1.42 on Solar's own generations (too low); v2 online training on 20.3M tokens with reasoning traces running on GPU1
+- Next: eval v2 checkpoints; if tau >= 2.5 build T>1 verify kernels
+- Metrics: tau=1.42
+- Experiments: experiments/2026-10-16-eagle3-v1.md
+- By: claude@etri-ESC8000-E11 · main@bb532fd-dirty
+
+### 2026-10-16 13:42+09:00 — Solar decode latency
+
+- Result: PIN_BOUNCE pinned DMA reads + MOVDIR64B uploads: exact bf16 single-stream 28.7 ms/tok (34.9 tok/s, p2); lm_head split slower (48.8), BAR reads neutral
+- Next: repeat pinned A/B on a quiet box; diagnose LM_SPLIT layer slowdown
+- Metrics: tok_s=34.9, ms_per_tok=28.7
+- Experiments: experiments/2026-10-16-movdir64b-upload.md, experiments/2026-10-16-pinned-bounce.md, experiments/2026-10-16-bar-reads.md, experiments/2026-10-16-lm-head-split.md
+- By: claude@etri-ESC8000-E11 · main@bb532fd-dirty
 
 ### 2026-10-16 10:39+09:00 — NPUOFF-1 ✅
 
