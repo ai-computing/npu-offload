@@ -28,7 +28,16 @@ python3 .research/report.py \
 
 - `--task` is the Plane work item: its ID (`FURIOSA-12`) if `.research/TASKS.md` shows one, or a
   short title (the hub creates the work item on first use).
-- Add `--done` when the task is finished, or `--state blocked --blocker "<why>"` when you are stuck.
+- Add `--done` when the task is finished, `--review` when it works but still needs verification
+  (parity, repeat runs, a human check), or `--state blocked --blocker "<why>"` when you are stuck.
+- Add `--todo "<follow-up>"` (repeatable) for concrete follow-up work; each becomes a Plane task
+  under this one. Put loose ideas in STATUS.md Open questions instead.
+- Use the metric keys listed at the top of `.research/TASKS.md` for `--metric` whenever they apply,
+  so results chart as a time series; add new keys only for genuinely new quantities.
+- For a measured run, also pass its configuration as `--param key=value` (tile, batch, concurrency,
+  SDK version, ...) and attach result files with `--artifact <path>` (plots, CSV, profile JSON,
+  logs; <= 8 MB each). The hub turns every report with metrics/params/artifacts into an MLflow run,
+  so runs can be compared and plotted side by side.
 - Tag the task with `--label <name>` (repeatable): a work type (`experiment`, `benchmark`, `bug`,
   `analysis`, `docs`, `infra`, `paper`) plus any project label listed at the top of `.research/TASKS.md`.
 - On Windows use `python` instead of `python3`.

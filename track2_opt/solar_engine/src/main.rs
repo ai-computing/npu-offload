@@ -387,10 +387,57 @@ impl Model {
     }
 }
 
+/// Serving loop. stdin: one request per line `{"ids":[...], "max_new":N, "stop":[...], "stop_count":k}`; stdout: `READY` once, then per
+/// request `{"tok":t}` lines as tokens are produced and `{"done":true,...}` (or `{"error":...}`). Greedy, exact bf16.
+fn serve(m: &mut Model) -> eyre::Result<()> {
+    use std::io::{BufRead, Write};
+    const CTX: usize = 8192;
+    let stdin = std::io::stdin();
+    let mut out = std::io::stdout().lock();
+    writeln!(out, "READY")?; out.flush()?;
+    for line in stdin.lock().lines() {
+        let line = line?;
+        if line.trim().is_empty() { continue; }
+        let req: serde_json::Value = match serde_json::from_str(&line) {
+            Ok(v) => v, Err(e) => { writeln!(out, "{}", serde_json::json!({"error": format!("bad request: {e}")}))?; out.flush()?; continue; }
+        };
+        let ids: Vec<usize> = req["ids"].as_array().map(|a| a.iter().filter_map(|v| v.as_u64().map(|x| x as usize)).collect()).unwrap_or_default();
+        let max_new = req["max_new"].as_u64().unwrap_or(16) as usize;
+        let stop: Vec<usize> = req["stop"].as_array().map(|a| a.iter().filter_map(|v| v.as_u64().map(|x| x as usize)).collect()).unwrap_or_default();
+        // stop on the stop_count-th stop token (Solar: <|end|> closes the think block first, then the answer)
+        let stop_count = req["stop_count"].as_u64().unwrap_or(1).max(1) as usize;
+        if ids.is_empty() || ids.len() + max_new > CTX || ids.iter().any(|&t| t >= VOCAB) {
+            writeln!(out, "{}", serde_json::json!({"error": format!("need 1..{CTX} tokens incl. max_new and ids < {VOCAB}")}))?; out.flush()?; continue;
+        }
+        m.pos = 0; m.hits = 0; m.misses = 0; m.prof.clear();
+        let t0 = Instant::now();
+        let mut tok = 0;
+        for &id in &ids { tok = m.step(id)?; }
+        let prefill = t0.elapsed().as_secs_f64();
+        writeln!(out, "{}", serde_json::json!({"tok": tok}))?; out.flush()?;
+        let t1 = Instant::now();
+        let mut n = 1;
+        let mut seen = stop.contains(&tok) as usize;
+        while n < max_new && seen < stop_count {
+            tok = m.step(tok)?; n += 1;
+            seen += stop.contains(&tok) as usize;
+            writeln!(out, "{}", serde_json::json!({"tok": tok}))?; out.flush()?;
+        }
+        let dec = t1.elapsed().as_secs_f64();
+        writeln!(out, "{}", serde_json::json!({"done": true, "n": n, "prompt": ids.len(), "prefill_s": prefill,
+            "decode_ms_per_tok": if n > 1 { dec * 1e3 / (n - 1) as f64 } else { 0.0 },
+            "hit_rate": m.hits as f64 / (m.hits + m.misses).max(1) as f64}))?;
+        out.flush()?;
+    }
+    Ok(())
+}
+
 fn main() -> eyre::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let data = &args[1];
-    let n_new: usize = args[2].parse()?;
+    // `solar_engine <data_dir> serve`: persistent server, one JSON request per stdin line (see serve())
+    let serve_mode = args[2] == "serve";
+    let n_new: usize = if serve_mode { 0 } else { args[2].parse()? };
     let n_layers: usize = args.get(3).map(|s| s.parse().unwrap()).unwrap_or(L);
     if let Ok(n) = std::env::var("MMIO_RT").map(|v| v.parse::<i32>().unwrap_or(8)) {
         unsafe { host::ck_mmio_set_threads(n) };
@@ -471,6 +518,7 @@ fn main() -> eyre::Result<()> {
     }
     m.bias = (0..n_layers).map(|l| m.w.f32v(&format!("model.layers.{l}.mlp.gate.e_score_correction_bias"))).collect();
     if std::env::var("MMIO_RT").is_ok() { chip::mmio::start_serving(); }
+    if serve_mode { return serve(&mut m); }
     if std::env::var("NSTREAM").map(|v| v == "2").unwrap_or(false) {
         // two concurrent streams (same prompt): aggregate throughput, exact per stream
         let repeat: usize = std::env::var("REPEAT").ok().and_then(|s| s.parse().ok()).unwrap_or(1);
