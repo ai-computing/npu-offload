@@ -1,0 +1,20 @@
+name: npu-offload
+layer: l2-memory
+kind: service
+summary: MoE hot expert는 NPU HBM에, cold expert는 호스트 CPU에 두는 expert 오프로딩 엔진과 배치 플래너, OpenAI 호환 워커, expert-affinity 게이트웨이
+maturity: prototype
+hardware: [RNGD]
+install:
+  - python -m pip install -e .
+test:                         # NPU-free; needs RNGD_LLMD (cluster.local.env) for the gateway test
+  - python -m moe_offload.tests.run
+deploy:
+  target: llm-d
+  manifests: null             # untested sketch, not kustomize: moe_offload/deploy/k8s-moe-worker.yaml
+  image: null
+config:
+  env_example: cluster.example.env
+interfaces:
+  provides: [MemoryTier, Placement, Metrics]
+  uses: []
+kpi: [이종자원수, SLO]
