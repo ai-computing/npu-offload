@@ -9,6 +9,7 @@ Python 3.6+, stdlib only.
 """
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import re
@@ -79,8 +80,16 @@ def main():
     p.add_argument("--next", default="", help="the next concrete action")
     p.add_argument("--state", choices=STATES, help="project state (default: active, or idle with --done)")
     p.add_argument("--done", action="store_true", help="the task is finished")
+    p.add_argument("--review", action="store_true",
+                   help="the work is done but awaits verification (Plane state 검증 중)")
+    p.add_argument("--todo", action="append", default=[], metavar="TITLE",
+                   help="follow-up task to create under this task (repeatable)")
     p.add_argument("--blocker", default="", help="why work is blocked (implies --state blocked)")
     p.add_argument("--metric", action="append", default=[], metavar="KEY=VALUE")
+    p.add_argument("--param", action="append", default=[], metavar="KEY=VALUE",
+                   help="run configuration (tile=256, batch=8, sdk=0.9.0); goes to MLflow with the metrics")
+    p.add_argument("--artifact", action="append", default=[], metavar="PATH",
+                   help="file to attach to the MLflow run (png/csv/json/log, <= 8 MB each)")
     p.add_argument("--experiment", action="append", default=[], metavar="PATH", help="experiment record(s)")
     p.add_argument("--label", action="append", default=[], metavar="NAME",
                    help="Plane label for the task (repeatable); see .research/TASKS.md for the list")
@@ -97,6 +106,26 @@ def main():
         if not sep:
             raise SystemExit("--metric expects KEY=VALUE, got %r" % item)
         metrics[key.strip()] = value.strip()
+
+    params = {}
+    for item in args.param:
+        key, sep, value = item.partition("=")
+        if not sep:
+            raise SystemExit("--param expects KEY=VALUE, got %r" % item)
+        params[key.strip()] = value.strip()
+
+    artifacts = []
+    for rel in args.artifact:
+        path = rel if os.path.isabs(rel) else os.path.join(ROOT, rel)
+        if not os.path.isfile(path):
+            raise SystemExit("--artifact not found: %s" % rel)
+        size = os.path.getsize(path)
+        if size > 8 * 1024 * 1024:
+            print("warning: %s is %.1f MB; recorded by path only (limit 8 MB)" % (rel, size / 1048576.0))
+        with open(path, "rb") as f:
+            digest = hashlib.sha256(f.read()).hexdigest()[:16]
+        artifacts.append({"path": os.path.relpath(path, ROOT).replace(os.sep, "/"), "size": size,
+                          "sha256": digest})
 
     state = args.state or ("blocked" if args.blocker else ("idle" if args.done else "active"))
     now = datetime.datetime.now().astimezone()
@@ -127,8 +156,14 @@ def main():
         lines.append("- Next: %s" % one_line(args.next))
     if args.blocker:
         lines.append("- Blocker: %s" % one_line(args.blocker))
+    if args.todo:
+        lines.append("- New todos: %s" % "; ".join(one_line(t) for t in args.todo))
     if metrics:
         lines.append("- Metrics: %s" % ", ".join("%s=%s" % kv for kv in metrics.items()))
+    if params:
+        lines.append("- Params: %s" % ", ".join("%s=%s" % kv for kv in params.items()))
+    if artifacts:
+        lines.append("- Artifacts: %s" % ", ".join(a["path"] for a in artifacts))
     if args.experiment:
         lines.append("- Experiments: %s" % ", ".join(args.experiment))
     if args.note:
@@ -149,8 +184,12 @@ def main():
         "done": args.done,
         "blocker": args.blocker.strip(),
         "metrics": metrics,
+        "params": params,
+        "artifacts": artifacts,
         "experiments": args.experiment,
         "labels": [l.strip() for l in args.label if l.strip()],
+        "review": args.review,
+        "todos": [t.strip() for t in args.todo if t.strip()],
         "note": args.note.strip(),
         "agent": agent,
         "host": host,
