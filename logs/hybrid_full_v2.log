@@ -1,0 +1,106 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 8s
+[rt] device upload: dense 48L + 2250 experts in 7s
+[npu:rngd:0] compiled ('qkv', 1, 0) in 3.8s
+[npu:rngd:0] compiled ('post', 1, 0) in 4.8s
+[npu:rngd:0] compiled ('exp', 1, 8) in 18.5s
+[npu:rngd:0] compiled ('exp', 1, 16) in 44.3s
+[npu:rngd:0] compiled ('exp', 1, 32) in 62.7s
+[npu:rngd:1] compiled ('exp', 1, 8) in 19.3s
+[npu:rngd:1] compiled ('exp', 1, 16) in 44.0s
+[npu:rngd:1] compiled ('exp', 1, 32) in 61.7s
+[npu:rngd:0] compiled ('qkv', 8, 0) in 13.3s
+[npu:rngd:0] compiled ('post', 8, 0) in 21.9s
+[npu:rngd:0] compiled ('exp', 8, 8) in 44.3s
+[npu:rngd:0] compiled ('exp', 8, 16) in 86.5s
+[npu:rngd:0] compiled ('exp', 8, 32) in 145.1s
+[npu:rngd:1] compiled ('exp', 8, 8) in 43.8s
+[npu:rngd:1] compiled ('exp', 8, 16) in 84.4s
+[npu:rngd:1] compiled ('exp', 8, 32) in 143.1s
+[npu:rngd:0] compiled ('qkv', 16, 0) in 21.5s
+[npu:rngd:0] compiled ('post', 16, 0) in 29.8s
+[npu:rngd:0] compiled ('exp', 16, 8) in 53.1s
+[npu:rngd:0] compiled ('exp', 16, 16) in 107.9s
+[npu:rngd:0] compiled ('exp', 16, 32) in 156.7s
+[npu:rngd:1] compiled ('exp', 16, 8) in 48.6s
+[npu:rngd:1] compiled ('exp', 16, 16) in 106.8s
+[npu:rngd:1] compiled ('exp', 16, 32) in 169.6s
+[rt] precompiled all graphs in 1536s
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 256, MemoryError(Allocate(256, 0, out of memory, requested: 256, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-591 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 197, in run_dev
+    K = bucket(len(chunk), K_BUCKETS)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 76, in put
+    def put(self, t):
+torch.OutOfMemoryError: failed to allocate 256 bytes on DRAM_SHARED
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 8192, MemoryError(Allocate(8192, 0, out of memory, requested: 8192, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-3594 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 197, in run_dev
+    for s in range(0, len(dh), K_BUCKETS[-1]):
+  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 542, in forward
+    outputs = self.edf_module(inputs, profiles=profiles, device=device)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 436, in forward
+    outputs = self._execute(flatten_args, profiles=profiles, device=device)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 425, in _execute
+    npu_outputs = self._execute_edf(npu_inputs, profiles)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 372, in _execute_edf
+    return torch.ops.furiosa.edf(
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 112, in autograd_impl
+    result = forward_no_grad(*args, Metadata(keyset, keyword_only_args))
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 41, in forward_no_grad
+    result = op.redispatch(keyset & _C._after_autograd_keyset, *args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_ops.py", line 826, in redispatch
+    return self._handle.redispatch_boxed(keyset, *args, **kwargs)  # type: ignore[return-value]
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 347, in backend_impl
+    result = self._backend_fns[device_type](*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 1181, in _fn
+    return fn(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 382, in wrapped_fn
+    return fn(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 58, in edf
+    outputs = ir.allocate_edf_outputs(
+torch.OutOfMemoryError: failed to allocate 8192 bytes on DRAM_SHARED
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 8192, MemoryError(Allocate(8192, 0, out of memory, requested: 8192, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-3773 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 185, in run_dev
+    self.stats["hit"] += sum(len(per[e]) for e in hits); self.stats["miss"] += sum(len(per[e]) for e in miss)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 76, in put
+    def put(self, t):
+torch.OutOfMemoryError: failed to allocate 8192 bytes on DRAM_SHARED
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261, 4380, 70766, 4499, 27273, 4109, 6053, 30256, 14397, 4316, 4112, 4111, 4111, 4129, 4107, 4471, 5057] text='<|think|>The user asks for five weekend destinations in Seoul with explanations. As Solar Open 100B, I need' decode 4404 ms/tok hit=33353 miss=6967 t_npu=11.70s t_cpu=20.33s wait=10.72s

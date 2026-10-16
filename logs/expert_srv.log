@@ -1,0 +1,8 @@
+[expert_srv] layer 7 resident (31s)
+[expert_srv] layer 15 resident (61s)
+[expert_srv] layer 23 resident (91s)
+[expert_srv] layer 31 resident (122s)
+[expert_srv] layer 39 resident (154s)
+[expert_srv] layer 47 resident (185s)
+[expert_srv] ready: 48 layers x 32 experts in 185s
+[expert_srv] quit

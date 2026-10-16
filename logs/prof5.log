@@ -1,0 +1,22 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 17s
+/home/user/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:0] load ('post', 1, 0) in 0.0s
+[npu:rngd:0] load ('expg', 1, (8, 16)) in 0.0s
+[npu:rngd:0] load ('expg', 1, (16, 16)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (8, 22)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (16, 22)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (24, 22)) in 0.0s
+[npu:rngd:0] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:0] load ('post', 8, 0) in 0.0s
+[npu:rngd:0] load ('expg', 8, (8, 16)) in 0.0s
+[npu:rngd:0] load ('expg', 8, (16, 16)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (8, 22)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (16, 22)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (24, 22)) in 0.0s
+[rt] precompiled + warmed all graphs in 1s
+[rt] device upload: dense 48L + 1824 experts in 14s
+[prof] (decode only, 15 tok) moe=5.73s dev0.stage=1.99s dev0.graph=1.55s dev1.h2=1.38s dev1.graph=1.21s post.graph=1.13s qkv=0.83s attn=0.82s dev1.stage=0.77s lm_head=0.66s dev1.d2h=0.20s dev0.d2h=0.19s post=0.17s moe.route=0.13s moe.group=0.13s combine=0.04s rotary=0.03s dev0.h2=0.00s | sum_top=8.28s
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261, 4380, 70766, 4499, 27273, 4109, 4471, 5057, 4395] text='<|think|>The user asks for five weekend destinations in Seoul with explanations. I need to' decode 629 ms/tok hit=28466 miss=8782 t_npu=9.11s t_cpu=9.19s wait=2.42s swaps=0 t_swap=0.00s hit_rate=0.764

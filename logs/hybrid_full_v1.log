@@ -1,0 +1,73 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 8s
+[rt] device upload: dense 48L + 2549 experts in 8s
+[npu:rngd:0] compiled ('qkv', 1, 0) in 3.8s
+[npu:rngd:0] compiled ('post', 1, 0) in 4.9s
+[npu:rngd:0] compiled ('exp', 1, 8) in 18.6s
+[npu:rngd:0] compiled ('exp', 1, 16) in 43.6s
+[npu:rngd:0] compiled ('exp', 1, 32) in 61.9s
+[npu:rngd:1] compiled ('exp', 1, 8) in 18.6s
+[npu:rngd:1] compiled ('exp', 1, 16) in 43.0s
+[npu:rngd:1] compiled ('exp', 1, 32) in 61.0s
+[npu:rngd:0] compiled ('qkv', 8, 0) in 13.7s
+[npu:rngd:0] compiled ('post', 8, 0) in 22.1s
+[npu:rngd:0] compiled ('exp', 8, 8) in 43.3s
+[npu:rngd:0] compiled ('exp', 8, 16) in 84.9s
+[npu:rngd:0] compiled ('exp', 8, 32) in 143.6s
+[npu:rngd:1] compiled ('exp', 8, 8) in 43.3s
+[npu:rngd:1] compiled ('exp', 8, 16) in 83.9s
+[npu:rngd:1] compiled ('exp', 8, 32) in 143.0s
+[npu:rngd:0] compiled ('qkv', 16, 0) in 21.1s
+[npu:rngd:0] compiled ('post', 16, 0) in 28.5s
+[npu:rngd:0] compiled ('exp', 16, 8) in 47.9s
+[npu:rngd:0] compiled ('exp', 16, 16) in 95.4s
+[npu:rngd:0] compiled ('exp', 16, 32) in 151.7s
+[npu:rngd:1] compiled ('exp', 16, 8) in 47.8s
+[npu:rngd:1] compiled ('exp', 16, 16) in 93.9s
+[npu:rngd:1] compiled ('exp', 16, 32) in 154.0s
+[rt] precompiled all graphs in 1474s
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 16, MemoryError(Allocate(16, 0, out of memory, requested: 256, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-884 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 197, in run_dev
+    acc += npu.graph("exp", Tb, K)(hd, npu.put(G), *ws).cpu()[:T].float()
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 76, in put
+    return t.to(self.dev)
+torch.OutOfMemoryError: failed to allocate 16 bytes on DRAM_SHARED
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 16, MemoryError(Allocate(16, 0, out of memory, requested: 256, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-1352 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 197, in run_dev
+    acc += npu.graph("exp", Tb, K)(hd, npu.put(G), *ws).cpu()[:T].float()
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 76, in put
+    return t.to(self.dev)
+torch.OutOfMemoryError: failed to allocate 16 bytes on DRAM_SHARED
+[31mERROR[0m [2mfuriosa_torch::cpp::allocator[0m[2m:[0m Failed to alloc dram shared, required: 16, MemoryError(Allocate(16, 0, out of memory, requested: 256, capacity: 0
+
+Location:
+    /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
+Exception in thread Thread-1379 (run_dev):
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 197, in run_dev
+    acc += npu.graph("exp", Tb, K)(hd, npu.put(G), *ws).cpu()[:T].float()
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 76, in put
+    return t.to(self.dev)
+torch.OutOfMemoryError: failed to allocate 16 bytes on DRAM_SHARED

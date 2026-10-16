@@ -1,0 +1,6 @@
+[33m WARN[0m [2mfuriosa_torch::cpp::extension[0m[2m:[0m manual_seed_all is not implemented yet; please use `torch.Generator`
+compiled mode=mesh T=1 K=8 E=64 in 69.9s
+rel_err 0.004128946922719479
+RESULT mode=mesh T=1 K=8 dev_ms=0.604 eff_GBps=416.5
+rel_err ids 0 0.004291329067200422
+rel_err ids 1 0.004127910360693932

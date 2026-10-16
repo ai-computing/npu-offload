@@ -1,0 +1,20 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 22s
+/home/user/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+Traceback (most recent call last):
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 574, in <module>
+    rt = Runtime(W, nL, mode, resident, devs=devs, cpu_threads=a.cpu_threads, slots=slots)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 195, in __init__
+    self.precompile(warm=True)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 233, in precompile
+    g = self.npu.graph("qkv", T)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 118, in graph
+    return self._compile(kind, T, K)
+  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 148, in _compile
+    m.to(self.dev)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 530, in to
+    self.edf_module = self.edf_module.to(device)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 287, in to
+    weight, binaries = ir.Edf.load_weight_and_binaries(
+RuntimeError: Npu npu0pe0-3: EBUSY: Device or resource busy

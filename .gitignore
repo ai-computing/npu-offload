@@ -1,0 +1,22 @@
+# build outputs
+target/
+__pycache__/
+*.pyc
+# third-party clones (own git histories)
+ref/
+track2_opt/upstream/
+# caches, weights, features, datasets, large binaries
+cache/
+eagle3/raw/
+eagle3/feats*/
+*.pt
+*.bin
+*.safetensors
+*.parquet
+*.jsonl
+!.research/events.jsonl
+*.log.gz
+# generated eval outputs keep only small text
+eagle3/evalgen/*/run.log
+track2_opt/docs_cache/
+track2_opt/solar_engine/vendor/furiosa-opt-rt/prebuilt/

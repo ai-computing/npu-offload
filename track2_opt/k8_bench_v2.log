@@ -1,0 +1,14 @@
+generated 64 experts in 8.7s
+uploaded tables (2.01 GB) in 2.2s
+ids=[3, 17, 42, 63, 0, 8, 29, 51]: all experts match = true; inactive rows untouched = true
+ids=[60, 5, 33, 12]: all experts match = true; inactive rows untouched = true
+K=8 launch only (ids fixed): p50=284.2us min=282.0us p90=297.3us -> 885 GB/s (p50)
+K=8 ids write + launch: p50=290.6us min=287.4us p90=1769.9us -> 866 GB/s (p50)
+K=8 host roundtrip (x up, ids, launch, out down): p50=458.6us min=422.0us p90=6036.4us -> 549 GB/s (p50)
+  HbmScalar write alone: p50=7.4us min=6.1us p90=7.8us -> 0 GB/s (p50)
+  x upload (8KB) alone: p50=29.4us min=25.8us p90=1384.5us -> 0 GB/s (p50)
+  out download (64KB) alone: p50=120.1us min=106.4us p90=2035.8us -> 1 GB/s (p50)
+ffn_k8u all experts match = true
+K=8 UNGUARDED launch only: p50=260.6us min=258.9us p90=262.3us -> 966 GB/s (p50)
+K=8 UNGUARDED ids write + launch: p50=266.7us min=264.7us p90=267.6us -> 944 GB/s (p50)
+K=4 active (guarded) launch only: p50=146.0us min=145.0us p90=146.4us -> 862 GB/s (p50)

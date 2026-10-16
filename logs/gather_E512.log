@@ -1,0 +1,10 @@
+[33m WARN[0m [2mfuriosa_torch::cpp::extension[0m[2m:[0m manual_seed_all is not implemented yet; please use `torch.Generator`
+compiled mode=mesh T=1 K=8 E=512 in 48.4s
+Traceback (most recent call last):
+  File "/home/user/workspace/npu_offload/p0/npu_gather2.py", line 42, in <module>
+    Wg_d, Wd_d = Wgu.to(DEV), Wd.to(DEV)
+  File "/home/user/.local/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 1181, in _fn
+    return fn(*args, **kwargs)
+  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/copy_from.py", line 50, in aten_copy_from
+    tp_program.run_blocking() if tp_program else None
+RuntimeError: failed to run TP program: Npu(npu:0:0-3, Buf(Os { code: -7, kind: Uncategorized, message: "Unknown error -7" }))

@@ -1,0 +1,23 @@
+generated 64 experts in 6.8s
+uploaded tables (2.01 GB) in 2.5s
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=0 expert=3: max_abs_err=0.00149 max|ref|=0.5298 rms_ref=0.1432 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=1 expert=17: max_abs_err=0.00097 max|ref|=0.4773 rms_ref=0.1297 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=2 expert=42: max_abs_err=0.00165 max|ref|=0.5589 rms_ref=0.1457 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=3 expert=63: max_abs_err=0.00141 max|ref|=0.6180 rms_ref=0.1577 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=4 expert=0: max_abs_err=0.00107 max|ref|=0.4886 rms_ref=0.1368 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=5 expert=8: max_abs_err=0.00098 max|ref|=0.4985 rms_ref=0.1301 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=6 expert=29: max_abs_err=0.00097 max|ref|=0.5279 rms_ref=0.1415 outliers(>2%+1e-3)=0/4096
+  ids=[3, 17, 42, 63, 0, 8, 29, 51] k=7 expert=51: max_abs_err=0.82116 max|ref|=0.5047 rms_ref=0.1367 outliers(>2%+1e-3)=3892/4096
+ids=[3, 17, 42, 63, 0, 8, 29, 51]: all experts match = false; inactive rows untouched = true
+  ids=[60, 5, 33, 12] k=0 expert=60: max_abs_err=0.00136 max|ref|=0.5739 rms_ref=0.1449 outliers(>2%+1e-3)=0/4096
+  ids=[60, 5, 33, 12] k=1 expert=5: max_abs_err=0.00160 max|ref|=0.5993 rms_ref=0.1416 outliers(>2%+1e-3)=0/4096
+  ids=[60, 5, 33, 12] k=2 expert=33: max_abs_err=0.00156 max|ref|=0.6148 rms_ref=0.1383 outliers(>2%+1e-3)=0/4096
+  ids=[60, 5, 33, 12] k=3 expert=12: max_abs_err=0.00183 max|ref|=0.5021 rms_ref=0.1407 outliers(>2%+1e-3)=0/4096
+ids=[60, 5, 33, 12]: all experts match = true; inactive rows untouched = true
+K=8 launch only (ids fixed): p50=145.5us min=143.8us p90=146.2us -> 1730 GB/s (p50)
+K=8 ids write + launch: p50=290.1us min=287.7us p90=291.3us -> 867 GB/s (p50)
+K=8 host roundtrip (x up, ids, launch, out down): p50=814.2us min=390.5us p90=6434.9us -> 309 GB/s (p50)
+  HbmScalar write alone: p50=6.6us min=6.2us p90=7.2us -> 0 GB/s (p50)
+  x upload (8KB) alone: p50=25.1us min=22.8us p90=30.9us -> 0 GB/s (p50)
+  out download (64KB) alone: p50=89.4us min=86.9us p90=1441.2us -> 1 GB/s (p50)
+K=4 active (guarded) launch only: p50=146.0us min=144.9us p90=146.6us -> 862 GB/s (p50)
