@@ -1,0 +1,25 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 60s
+[rt] device upload: dense 48L + 2208 experts in 40s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:0] load ('post', 1, 0) in 0.0s
+[npu:rngd:0] load ('expg', 1, (8, 20)) in 0.0s
+[npu:rngd:0] load ('expg', 1, (16, 20)) in 0.0s
+[npu:rngd:0] load ('expg', 1, (24, 20)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (8, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (16, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (24, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (32, 26)) in 0.0s
+[npu:rngd:0] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:0] load ('post', 8, 0) in 0.0s
+[npu:rngd:0] load ('expg', 8, (8, 20)) in 0.0s
+[npu:rngd:0] load ('expg', 8, (16, 20)) in 0.0s
+[npu:rngd:0] load ('expg', 8, (24, 20)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (8, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (16, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (24, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (32, 26)) in 0.0s
+[rt] precompiled all graphs in 0s
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261, 4380, 70766, 4499, 27273, 4109, 6053, 30256, 14397, 4316, 4112, 4111, 4111, 4129, 4107, 4471, 5057, 4395, 6721, 4355, 10143, 4107, 81158, 10791, 5850] text='<|think|>The user asks for five weekend destinations in Seoul with explanations. As Solar Open 100B, I need to provide a helpful, culturally relevant answer' decode 4132 ms/tok hit=35233 miss=8159 t_npu=12.97s t_cpu=24.61s wait=13.32s swaps=0 t_swap=0.00s hit_rate=0.812

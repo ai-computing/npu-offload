@@ -1,0 +1,102 @@
+prompt tokens: 5
+[rt] host weights loaded (4 layers) 1s
+[cpu] tokens=[39651, 27923, 23080, 4580, 9369, 63248] text=' compromise peacefully co illogical' decode 121 ms/tok hit=0 miss=320 t_npu=0.00s t_cpu=0.45s wait=0.44s
+[rt] host weights loaded (4 layers) 1s
+[rt] device upload: dense 4L + 184 experts in 3s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:0] load ('post', 1, 0) in 0.0s
+[npu:rngd:0] load ('expg', 1, (8, 20)) in 0.0s
+[npu:rngd:0] load ('expg', 1, (16, 20)) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 1, (24, 20)) in 54.6s
+[npu:rngd:1] load ('expg', 1, (8, 26)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (16, 26)) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 1, (24, 26)) in 54.9s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 1, (32, 26)) in 50.9s
+[npu:rngd:0] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:0] load ('post', 8, 0) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 8, (8, 20)) in 107.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 8, (16, 20)) in 142.1s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 8, (24, 20)) in 187.5s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (8, 26)) in 125.3s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (16, 26)) in 148.5s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (24, 26)) in 186.4s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (32, 26)) in 159.6s
+[npu:rngd:0] load ('qkv', 16, 0) in 0.0s
+[npu:rngd:0] load ('post', 16, 0) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 16, (8, 20)) in 153.9s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 16, (16, 20)) in 156.6s
+Traceback (most recent call last):
+  File "/home/gspark/.local/lib/python3.10/site-packages/furiosa/torch/compiler/__init__.py", line 70, in compile
+    edf = compiler.compile(
+RuntimeError: O543 flattening failed
+
+Caused by:
+   0: verification of operator failed:
+      View
+      offset: 4B
+      name: 
+
+      input tensors: 1
+        input T242: [Broadcast=1]|[0_1=24:1], 96 B, raw_i32, dram
+        source: {(ids, 0)}
+        total bytes: 96
+      output tensors: 1
+        output T471: [Broadcast=1]|[], 4 B, raw_i32, dram
+        source: unknown
+        total bytes: 4
+   1: (offset_in_bytes / config::global_config().num_chips()) %
+      config::global_config().size_dram_bulk() (4) != 0 (0)
+
+Location:
+    /root/.cargo/git/checkouts/npu-tools-dec42ebd45bb55cf/3f23a71/crates/npu-ir/src/common/operator/verify/mod.rs:1013:17
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 430, in <module>
+    order = torch.argsort(c.flatten(), descending=True)[:budget_experts]
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 171, in __init__
+    self.precompile()
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 186, in precompile
+    self.npu.graph("qkv", T); self.npu.graph("post", T)
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 94, in graph
+    return self._compile(kind, T, K)
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 120, in _compile
+    m, how, dt = AC.get_or_compile(EDF_CACHE, ck, compile_fn)
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/artifact_cache.py", line 60, in get_or_compile
+    t0 = time.time(); m = compile_fn()
+  File "/home/gspark/workspace/npu_offload/solar_hybrid/runtime.py", line 113, in compile_fn
+    return self.CM.from_module(GExpG(F), (z(T, H), z(T, k_), torch.zeros(k_, dtype=torch.int32),
+  File "/home/gspark/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 494, in from_module
+    return cls.from_exported(exported, compiler_config=compiler_config)
+  File "/home/gspark/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 479, in from_exported
+    edf_module = EdfModule(compiler.compile(exported, compiler_config))
+  File "/home/gspark/.local/lib/python3.10/site-packages/furiosa/torch/compiler/__init__.py", line 77, in compile
+    raise error.UnsupportedOpError(f"failed to compile the graph") from e
+furiosa.UnsupportedOpError: failed to compile the graph

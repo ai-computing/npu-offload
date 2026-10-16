@@ -1,0 +1,42 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 54s
+[rt] device upload: dense 48L + 1824 experts in 39s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:0] load ('post', 1, 0) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 1, (8, 16)) in 44.3s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 1, (16, 16)) in 49.2s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 1, (8, 22)) in 43.1s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 1, (16, 22)) in 54.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 1, (24, 22)) in 62.9s
+[npu:rngd:0] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:0] load ('post', 8, 0) in 0.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 8, (8, 16)) in 103.0s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:0] compile ('expg', 8, (16, 16)) in 133.4s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (8, 22)) in 114.3s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (16, 22)) in 145.8s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] compile ('expg', 8, (24, 22)) in 195.2s
+[rt] precompiled all graphs in 945s
+[prof] (all steps incl. prefill) attn=54.69s moe=29.85s post=13.28s rotary=12.79s moe.route=5.55s qkv=1.36s lm_head=0.66s moe.group=0.56s combine=0.11s | sum_top=112.74s
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261] text='<|think|>The user asks for five weekend destinations' decode 3549 ms/tok hit=26418 miss=7758 t_npu=5.38s t_cpu=22.49s wait=17.07s swaps=0 t_swap=0.00s hit_rate=0.773

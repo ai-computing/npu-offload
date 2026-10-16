@@ -1,0 +1,21 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 20s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:1] load ('post', 1, 0) in 0.0s
+[npu:rngd:1] load ('expg', 1, (8, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (16, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (24, 24)) in 0.0s
+[npu:rngd:1] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:1] load ('post', 8, 0) in 0.0s
+[npu:rngd:1] load ('expg', 8, (8, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (16, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (24, 24)) in 0.0s
+[rt] precompiled + warmed all graphs in 1s
+[rt] exported expert_srv tables in 40s
+[rt] expert_srv ready on npu0 (185s)
+[rt] device upload: dense 48L + 2688 experts in 237s
+[prof] (decode only, 15 tok) moe=2.19s lm_head=1.17s dev0.graph=0.92s qkv=0.76s post.graph=0.74s attn=0.62s dev0.stage=0.42s moe.route=0.18s post=0.17s dev0.d2h=0.14s moe.group=0.13s rotary=0.03s combine=0.03s dev0.h2=0.00s | sum_top=4.97s
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261, 4380, 70766, 4499, 27273, 4109, 6053, 30256, 14397] text='<|think|>The user asks for five weekend destinations in Seoul with explanations. As Solar Open' decode 381 ms/tok hit=32658 miss=4590 t_npu=5.47s t_cpu=1.66s wait=0.64s swaps=0 t_swap=0.00s hit_rate=0.877
+[rt] expert_srv calls=4627 avg_wait=695us

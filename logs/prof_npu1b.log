@@ -1,0 +1,18 @@
+prompt tokens: 82
+[rt] host weights loaded (48 layers) 21s
+/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+  result = unpickler.load()
+[npu:rngd:1] load ('qkv', 1, 0) in 0.0s
+[npu:rngd:1] load ('post', 1, 0) in 0.0s
+[npu:rngd:1] load ('expg', 1, (8, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (16, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 1, (24, 24)) in 0.0s
+[npu:rngd:1] load ('qkv', 8, 0) in 0.0s
+[npu:rngd:1] load ('post', 8, 0) in 0.0s
+[npu:rngd:1] load ('expg', 8, (8, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (16, 24)) in 0.0s
+[npu:rngd:1] load ('expg', 8, (24, 24)) in 0.0s
+[rt] precompiled + warmed all graphs in 1s
+[rt] device upload: dense 48L + 1152 experts in 10s
+[prof] (decode only, 15 tok) moe=2.40s post.graph=1.05s dev0.stage=1.04s lm_head=0.64s qkv=0.60s dev0.graph=0.58s attn=0.44s post=0.16s moe.group=0.14s moe.route=0.13s dev0.d2h=0.11s rotary=0.03s combine=0.03s dev0.h2=0.00s | sum_top=4.30s
+[hybrid] tokens=[22, 4677, 6604, 12595, 4442, 8312, 47925, 51261, 4380, 70766, 4499, 27273, 4109, 4471, 5057, 4395] text='<|think|>The user asks for five weekend destinations in Seoul with explanations. I need to' decode 358 ms/tok hit=23364 miss=13884 t_npu=3.59s t_cpu=3.97s wait=2.02s swaps=0 t_swap=0.00s hit_rate=0.627

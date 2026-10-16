@@ -1,0 +1,33 @@
+/home/gspark/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.pin_memory() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:46.)
+  return {k: v.pin_memory("cuda") for k, v in d.items()} if pin else d
+/home/gspark/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.is_pinned() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:31.)
+  return {k: v.pin_memory("cuda") for k, v in d.items()} if pin else d
+[1/29] 97798 tok in 41s
+[2/29] 98271 tok in 41s
+[3/29] 98213 tok in 41s
+[4/29] 96381 tok in 49s
+[5/29] 97539 tok in 41s
+[6/29] 97496 tok in 37s
+[7/29] 98299 tok in 40s
+[8/29] 97283 tok in 43s
+[9/29] 98055 tok in 35s
+[10/29] 96407 tok in 34s
+[11/29] 96811 tok in 33s
+[12/29] 98106 tok in 34s
+[13/29] 98252 tok in 35s
+[14/29] 98154 tok in 35s
+[15/29] 98284 tok in 33s
+[16/29] 97862 tok in 34s
+[17/29] 98198 tok in 34s
+[18/29] 97940 tok in 35s
+[19/29] 97856 tok in 34s
+[20/29] 98230 tok in 34s
+[21/29] 96523 tok in 35s
+[22/29] 97808 tok in 35s
+[23/29] 98258 tok in 35s
+[24/29] 98257 tok in 35s
+[25/29] 97912 tok in 34s
+[26/29] 98143 tok in 34s
+[27/29] 97647 tok in 34s
+[28/29] 98266 tok in 35s
+[29/29] 38154 tok in 25s

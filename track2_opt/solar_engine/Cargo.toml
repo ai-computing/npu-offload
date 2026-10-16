@@ -1,0 +1,39 @@
+[package]
+name = "solar_engine"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[package.metadata.furiosa-opt]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(backend, values("emulation", "npu", "typecheck"))', 'cfg(furiosa_opt)'] }
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "solar_engine"
+path = "src/main.rs"
+
+[dependencies]
+eyre = "0.6"
+memmap2 = "0.9"
+safetensors = "0.4"
+serde_json = "1"
+libc = "0.2"
+furiosa-opt-std = "=0.9.0"
+furiosa-opt-rt = "=0.9.0"
+tokio = { version = "1.29", features = ["rt", "rt-multi-thread", "sync", "macros", "time"] }
+rand = "0.9"
+half = "2"
+
+[build-dependencies]
+cc = "1"
+
+[profile.release]
+debug = false
+
+[patch.crates-io]
+# local copy of the runtime with tunable polling (SQPOLL_OFF, DMA_IDLE_US) — frees host cores for CPU experts
+furiosa-opt-rt = { path = "vendor/furiosa-opt-rt" }
