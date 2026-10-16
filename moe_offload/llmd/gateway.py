@@ -12,8 +12,9 @@ import argparse, json, os, sys, threading, time, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .affinity import AffinityTable, classify, score
+from .. import siteenv
 
-RNGD_LLMD = os.environ.get("RNGD_LLMD", os.path.expanduser("~/workspace/routing/rngd_llmd"))
+RNGD_LLMD = siteenv.require("RNGD_LLMD", "path to an rngd_llmd checkout; its gateway/ package is imported")
 sys.path.insert(0, os.path.join(RNGD_LLMD, "gateway"))
 from registry import WorkerRegistry, Role  # noqa: E402  (rngd_llmd)
 from kv_events import KVIndex  # noqa: E402

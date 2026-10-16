@@ -25,3 +25,6 @@ track2_opt/solar_engine/vendor/furiosa-opt-rt/prebuilt/
 eagle3/tq.log
 eagle3/xq*.log
 *.egg-info/
+
+# site-specific settings (see cluster.example.env)
+cluster.local.env

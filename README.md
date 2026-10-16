@@ -147,7 +147,7 @@ print(stats["decode_ms_per_tok"], stats["hit_rate"])
 | `GET /metrics` | `vllm:num_requests_running`, `vllm:num_requests_waiting`, `vllm:kv_cache_usage_perc`, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token`, per-class hit rate |
 | `GET /health`, `/v1/models` | |
 
-The gateway reuses the worker registry and endpoint picker of an llm-d style RNGD gateway (`$RNGD_LLMD`) and adds an
+The gateway reuses the worker registry and endpoint picker of an llm-d style RNGD gateway (`$RNGD_LLMD`, see `cluster.example.env`) and adds an
 **expert-affinity scorer**: each worker reports the hit rate of every request by class (Korean / code / English),
 the gateway keeps an EWMA per (worker, class) seeded with the hit rates the worker's placement predicts, and routes
 to the best `affinity − load` score. With workers carrying different placements, requests go where their experts
@@ -214,6 +214,49 @@ Benchmarks are noisy on shared hosts (±10–15 %): use `REPEAT`, check the load
 - Accelerators are opened exclusively; other processes using the same RNGD cards block engine start-up.
 - Expert-affinity routing is validated with mock workers; a single host with two cards runs one real worker.
 - The Kubernetes manifests are untested.
+
+## ai-rm
+
+**레이어**: `l2-memory` (메모리 계층·데이터 이동). **종류**: `service`.
+MoE 모델의 hot expert는 NPU HBM에 두고 cold expert는 호스트 CPU에서 계산하며, PCIe로는 activation만 옮긴다.
+ai-rm 안에서 NPU HBM ↔ 호스트 DRAM 사이의 expert 오프로딩(메모리 계층)을 맡는다.
+구성 요소는 셋이다: 배치·예산 라이브러리(`moe_offload`), OpenAI 호환 워커(`moe-offload worker`), expert-affinity
+게이트웨이(`moe-offload gateway`). 데이터 플레인은 Solar-Open-100B 전용 furiosa-opt 엔진(`track2_opt/solar_engine`)이다.
+
+**k8s + llm-d 연동: 아직 아니다.**
+- 워커는 llm-d EPP가 수집하는 vLLM 호환 게이지(`vllm:num_requests_*`, `vllm:kv_cache_usage_perc`)를 `/metrics`로 내보낸다.
+  Deployment + `InferencePool` 초안은 `moe_offload/deploy/k8s-moe-worker.yaml`에 있다.
+- 부족한 것은 다음과 같다.
+  - 컨테이너 이미지가 없다(엔진 바이너리 + 패치한 런타임 + 모델 마운트).
+  - 매니페스트를 클러스터에서 검증하지 않았다(kustomize 디렉터리도 아님).
+  - expert-affinity 스코어러가 EPP 플러그인이 아니라 별도 게이트웨이다.
+  - 게이트웨이는 비공개 `rngd_llmd`의 registry/EPP 모듈에 의존한다.
+
+**설치·테스트** (가속기 불필요, 테스트는 `RNGD_LLMD` 필요):
+
+```bash
+python -m pip install -e .        # 토크나이저·프로파일링까지: pip install -e .[model]
+cp cluster.example.env cluster.local.env   # RNGD_LLMD 경로 설정
+python -m moe_offload.tests.run   # = moe-offload selftest
+```
+
+**인터페이스** (ai-rm `docs/interfaces.md`):
+- 제공
+  - `MemoryTier`: 가속기별 HBM 예산 산정, expert 슬롯 수 계산
+  - `Placement`: 라우팅 프로파일 기반 hot/cold expert 배치와 예상 적중률
+  - `Metrics`: `/metrics`의 vLLM 호환 게이지, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token`
+- 사용: 없음. RNGD를 furiosa-opt로 직접 다루며 `Accelerator`(rm_abstract_layer)는 아직 쓰지 않는다.
+
+**지원 KPI**
+- `이종자원수`: NPU 2장과 호스트 CPU를 한 모델 decode에 함께 쓴다.
+- `SLO`: 단일 요청 decode 지연. 현재 28.7 ms/tok, 목표는 33 ms/tok 이하다.
+
+**`cluster.local.env` 변수** (`cluster.example.env` 참고, 환경변수가 우선한다):
+
+| 변수 | 필수 | 용도 |
+|---|---|---|
+| `RNGD_LLMD` | 게이트웨이·selftest | `rngd_llmd` 체크아웃 경로(`gateway/` 패키지를 import) |
+| `LLMD_GATEWAY_URL` | 선택 | `moe-offload worker --gateway`의 기본값 |
 
 ## License
 

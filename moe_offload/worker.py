@@ -14,6 +14,7 @@ With --gateway URL the worker registers (role "both"), heartbeats its in-flight 
 import argparse, json, os, socket, threading, time, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from . import siteenv
 from .engine import EngineProcess, MockEngine, SOLAR_ENV
 from .llmd.affinity import classify
 
@@ -191,12 +192,14 @@ def main():
     ap.add_argument("--engine"); ap.add_argument("--data"); ap.add_argument("--model")
     ap.add_argument("--model-name", default="solar-open-100b"); ap.add_argument("--wid", default=socket.gethostname() + "-moe0")
     ap.add_argument("--port", type=int, default=8101); ap.add_argument("--host", default="127.0.0.1")
-    ap.add_argument("--gateway", default=""); ap.add_argument("--log", default="engine_serve.log")
+    ap.add_argument("--gateway", default=None, help="gateway URL (default: $LLMD_GATEWAY_URL, else none)"); ap.add_argument("--log", default="engine_serve.log")
     ap.add_argument("--env", nargs="*", default=[], help="extra engine env KEY=VALUE")
     ap.add_argument("--mock", action="store_true"); ap.add_argument("--mock-ms", type=float, default=1.0)
     ap.add_argument("--mock-hit", default="0.85", help="hit rate, or JSON per class for the mock engine")
     ap.add_argument("--priors", default="", help='JSON {"ko":0.89,...}: placement-predicted hit per class')
     a = ap.parse_args()
+    if a.gateway is None:
+        siteenv.load(); a.gateway = os.environ.get("LLMD_GATEWAY_URL", "")
     w = build(a)
     srv = ThreadingHTTPServer((a.host, a.port), make_handler(w))
     if a.gateway: w.attach(a.gateway, f"http://{a.host}:{a.port}", priors=json.loads(a.priors) if a.priors else None)

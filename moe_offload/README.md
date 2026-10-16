@@ -64,7 +64,8 @@ python3 -m moe_offload.worker --engine track2_opt/solar_engine/target/release/so
 curl -s localhost:8080/v1/chat/completions -d '{"messages":[{"role":"user","content":"Hello"}],"max_tokens":256}'
 ```
 
-The gateway imports rngd_llmd from `$RNGD_LLMD` (default `~/workspace/routing/rngd_llmd`).
+The gateway imports rngd_llmd from `$RNGD_LLMD` (required; set it in the environment or in an untracked
+`cluster.local.env`, see `cluster.example.env`). `--gateway` of the worker defaults to `$LLMD_GATEWAY_URL`.
 
 ## Status and limits
 
