@@ -20,3 +20,8 @@ eagle3/feats*/
 eagle3/evalgen/*/run.log
 track2_opt/docs_cache/
 track2_opt/solar_engine/vendor/furiosa-opt-rt/prebuilt/
+
+# live training/extraction logs
+eagle3/tq.log
+eagle3/xq*.log
+*.egg-info/

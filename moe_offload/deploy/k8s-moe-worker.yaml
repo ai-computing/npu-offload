@@ -1,0 +1,53 @@
+# UNTESTED sketch (no Kubernetes on the development host).
+# One moe_offload worker per node owning 2 RNGD cards, exposed to llm-d through an InferencePool.
+# The worker serves the OpenAI API on :8101 and exports vLLM-compatible gauges on /metrics
+# (vllm:num_requests_waiting, vllm:num_requests_running, vllm:kv_cache_usage_perc), which llm-d's
+# inference scheduler (EPP) already scrapes for its queue / KV-utilization scorers. The expert-affinity
+# scorer (moe_offload/llmd/gateway.py) runs as the standalone gateway; porting it to an EPP plugin is open work.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solar-moe-offload
+  labels: {app: solar-moe-offload}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: solar-moe-offload}}
+  template:
+    metadata:
+      labels: {app: solar-moe-offload, llm-d.ai/inferenceServing: "true"}
+    spec:
+      containers:
+      - name: worker
+        image: REGISTRY/npu-offload-worker:latest        # build: engine binary + moe_offload + HF snapshot mount
+        command: ["python3", "-m", "moe_offload.worker",
+                  "--engine", "/opt/solar_engine/solar_engine", "--data", "/opt/solar_engine/data",
+                  "--model", "/models/Solar-Open-100B", "--host", "0.0.0.0", "--port", "8101",
+                  "--priors", '{"ko":0.8683,"en":0.8623,"code":0.8964}']
+        ports: [{containerPort: 8101, name: http}]
+        resources:
+          limits: {furiosa.ai/rngd: 2, memory: 400Gi, cpu: "24"}
+        readinessProbe: {httpGet: {path: /health, port: 8101}, initialDelaySeconds: 180, periodSeconds: 10}
+        volumeMounts:
+        - {name: models, mountPath: /models, readOnly: true}
+        - {name: dmaheap, mountPath: /dev/dma_heap}
+      volumes:
+      - {name: models, hostPath: {path: /data/hf/hub/models--upstage--Solar-Open-100B/snapshots/CURRENT}}
+      - {name: dmaheap, hostPath: {path: /dev/dma_heap}}
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferencePool
+metadata:
+  name: solar-moe-pool
+spec:
+  targetPortNumber: 8101
+  selector: {app: solar-moe-offload}
+  extensionRef: {name: solar-moe-epp}              # llm-d inference-scheduler deployment (EPP)
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceModel
+metadata:
+  name: solar-open-100b
+spec:
+  modelName: solar-open-100b
+  criticality: Standard
+  poolRef: {name: solar-moe-pool}
