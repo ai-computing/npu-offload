@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-16 13:42+09:00
+- **Updated**: 2026-10-19 08:50+09:00
 - **Agent**: claude@npu-node-2
 - **Task**: Speculative decoding for Solar
-- **Last result**: EAGLE-3 v1 (2.78M chat tokens): tau 1.42 on Solar's own generations (too low); v2 online training on 20.3M tokens with reasoning traces running on GPU1
-- **Next**: eval v2 checkpoints; if tau >= 2.5 build T>1 verify kernels
+- **Last result**: EAGLE-3 v3 (87.5M reasoning-style tokens, 2-GPU queue training, 6.2h): tau 1.92 (k=6) on Solar's own outputs, up from 1.42 (v1); per prompt 1.59-2.56
+- **Next**: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,21 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-19 08:50+09:00 — Speculative decoding for Solar
+
+- Result: EAGLE-3 v3 (87.5M reasoning-style tokens, 2-GPU queue training, 6.2h): tau 1.92 (k=6) on Solar's own outputs, up from 1.42 (v1); per prompt 1.59-2.56
+- Next: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
+- Metrics: tau=1.92
+- Experiments: experiments/2026-10-16-eagle3-v3.md
+- By: claude@npu-node-2 · main@25bb785-dirty
+
+### 2026-10-16 15:01+09:00 — NPUOFF-28 ✅
+
+- Result: checker clean (no IPs/credentials found). Parametrized RNGD_LLMD (now required, no ~/ fallback) and worker --gateway default ($LLMD_GATEWAY_URL) via env + untracked cluster.local.env (moe_offload/siteenv.py, cluster.example.env); added ai-rm.yaml (l2-memory, service) and README ## ai-rm. selftest 5/5. Pushed bf2fe53
+- Next: eagle3/prep*.py and evalgen/*.json, logs/ contain /home/<user> paths (not secrets); container image + EPP plugin needed for llm-d
+- New todos: Build npu-offload worker container image and validate k8s manifest on llm-d cluster
+- By: claude@npu-node-2 · main@bf2fe53-dirty
 
 ### 2026-10-16 13:42+09:00 — Speculative decoding for Solar
 
