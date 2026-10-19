@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-19 16:49+09:00
+- **Updated**: 2026-10-19 17:18+09:00
 - **Agent**: claude@etri-ESC8000-E11
 - **Task**: OptimusPrime MoE offload (generalized tiers)
-- **Last result**: Solar-Open-100B on OptimusPrime exact: rngd-opt x2+cpu 8.56 tok/s (64/64), +gpu45 10.18 (bf16 tie at tok 2); Qwen3-30B rngd-opt x2(64)+cpu 15.42, compiled 18.42 tok/s; native dispatcher +20-40%; ModelSpec step 1 done
-- **Next**: block providers + RNGD in-process segment executor (generalized solar_engine) to reach PoC 31+ tok/s through the planner
+- **Last result**: ATOM expert tier works (per-expert RBLN graphs, ~210us/expert, PASS); engine selection runs Solar on the PoC engine at 29.4 tok/s decode; ModelSpec/providers/engine registry pushed (aicomp feat/optimus-moe-offload)
+- **Next**: template PoC dense kernels for more geometries (step 3); ATOM custom kernels pending SDK support
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,15 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-19 17:18+09:00 — OptimusPrime MoE offload (generalized tiers)
+
+- Result: ATOM expert tier works (per-expert RBLN graphs, ~210us/expert, PASS); engine selection runs Solar on the PoC engine at 29.4 tok/s decode; ModelSpec/providers/engine registry pushed (aicomp feat/optimus-moe-offload)
+- Next: template PoC dense kernels for more geometries (step 3); ATOM custom kernels pending SDK support
+- Metrics: tok_s=29.4
+- Params: model=Solar-Open-100B, engine=rngd-layer
+- Experiments: experiments/2026-10-19-optimus-moe-offload-tiers.md
+- By: claude@etri-ESC8000-E11 · main@e6807c3-dirty
 
 ### 2026-10-19 16:49+09:00 — OptimusPrime MoE offload (generalized tiers)
 
