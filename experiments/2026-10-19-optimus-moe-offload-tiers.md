@@ -93,3 +93,20 @@ partition around the offload op, native CPU kernel rounding. Same-model check: S
 path but at 8.6-10.2 tok/s vs the PoC's 31-33 - the per-layer GPU<->host round trip, the Python dense path and the
 out-of-process NPU calls are structural. Next: block-level restructuring (ModelSpec -> kernel providers -> planner
 -> in-process segment executors) so an all-on-RNGD configuration like the PoC is one planner output.
+
+## Addendum: engine selection, CUDA graphs, ATOM hybrid probes (same day)
+
+- `auto_generate.py --model upstage/Solar-Open-100B` (aicomp feat/optimus-moe-offload): block spec 0.4 s (meta),
+  candidates optimus (no estimate) / rngd-layer (manifest 31 tok/s) -> rngd-layer chosen; engine decode **29.4 tok/s**,
+  14.65 tok/s incl. 69-token prompt (the PoC engine prefills token by token); 49/64 tokens equal to HF (tie check not
+  run in this example).
+- Qwen3-30B all-GPU with `--compile reduce-overhead --compile-skip-kv` (static shapes): 19.60 tok/s, 48/48 = HF; slower
+  than default compile (24.27): the CUDA graphs are split around the eager KV module and CPU ops, and the GPU expert
+  tier's pair split stays in Python. Dynamic shapes + reduce-overhead kept re-recording (0% GPU for >5 min).
+- ATOM (etri-001, rbln0, rebel-compiler 0.11): graph call overhead p50 61 us (x*2), 207 us (4096x4096 GEMV), 664 us
+  (4096x16384) -> per-layer segments are affordable on ATOM (furiosa-torch: ~1.2 ms per call).
+- ATOM custom kernels exist: `rebel.triton` (Triton 3.2 dialect + RBLN libdevice), registered as
+  `torch.library.triton_op("rbln_triton_ops::<name>")`; vllm-rbln ships attention kernels this way and the compiler has
+  a generic converter (custom_converter: extend_triton_op -> triton_custom, reads the kernel's metadata from the Triton
+  cache). A minimal SwiGLU-gate kernel in a compiled FFN did not convert yet (TVM frontend got a dict instead of a
+  tensor); next: reproduce one vllm-rbln kernel end to end as a known-good baseline, then adapt.
