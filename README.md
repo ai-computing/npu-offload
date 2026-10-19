@@ -144,7 +144,7 @@ print(stats["decode_ms_per_tok"], stats["hit_rate"])
 |---|---|
 | `POST /v1/completions` | `prompt` or `prompt_token_ids`; `max_tokens` |
 | `POST /v1/chat/completions` | chat template applied; `reasoning_content` split from `content` |
-| `GET /metrics` | `vllm:num_requests_running`, `vllm:num_requests_waiting`, `vllm:kv_cache_usage_perc`, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token`, per-class hit rate |
+| `GET /metrics` | `vllm:num_requests_running`, `vllm:num_requests_waiting`, `vllm:kv_cache_usage_perc`, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token` (deprecated → `airm_tpot_p50_ms`), per-class hit rate |
 | `GET /health`, `/v1/models` | |
 
 The gateway reuses the worker registry and endpoint picker of an llm-d style RNGD gateway (`$RNGD_LLMD`, see `cluster.example.env`) and adds an
@@ -246,7 +246,7 @@ python -m moe_offload.tests.run   # = moe-offload selftest
 - 제공
   - `MemoryTier`: 가속기별 HBM 예산 산정, expert 슬롯 수 계산
   - `Placement`: 라우팅 프로파일 기반 hot/cold expert 배치와 예상 적중률
-  - `Metrics`: `/metrics`의 vLLM 호환 게이지, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token`
+  - `Metrics`: `/metrics`의 vLLM 호환 게이지, `moe_offload_expert_hit_rate`, `moe_offload_decode_ms_per_token`(deprecated)
 - 사용: `rm-core` 계약(`Workload`, `MemoryTier`, `Measurement`). RNGD는 furiosa-opt로 직접 다루며 `AcceleratorProvider`는 쓰지 않는다.
 
 **rm-core 연동 (protocol v0.1)**: `moe_offload/airm.py`가 workload runner를 `airm.workloads`의 `npu-offload`로
@@ -282,6 +282,8 @@ run(Workload(kind="serve", model="solar-open-100b"), engine="track2_opt/solar_en
   decode ms/token 기준, `tok_s`는 생성 토큰 / decode 시간), `airm_power_w{scope="card"}`(`furiosa-smi info`, 5초 캐시).
   `kind="decode"` 실행은 같은 이름을 `report.py --metric tok_s=... --metric tpot_p50_ms=...` 형태로 출력한다.
   expert 적중률은 공유 지표가 아니라 `moe_offload_expert_hit_rate`로 남는다(rm-core 후보: `expert_hit_pct`).
+  `moe_offload_decode_ms_per_token`(EWMA)은 `airm_tpot_*`와 같은 양이라 deprecated다. PROTOCOL §6 이행 규칙에 따라
+  protocol 0.2까지만 유지하니 소비자는 `airm_tpot_p50_ms`를 먼저 읽는다.
 - **Helm chart**: `deploy/helm/npu-offload/`. llm-d ModelService 규약 레이블(`llm-d.ai/inferenceServing`,
   `llm-d.ai/model`, `llm-d.ai/role: decode`)을 단 decode 워커 Deployment와 Service를 만들고, 노드는
   `airm.ai-computing.io/furiosa.RNGD` 레이블로 고른다. 이미지 저장소, 모델 볼륨, 게이트웨이 주소 같은 사이트 값은
