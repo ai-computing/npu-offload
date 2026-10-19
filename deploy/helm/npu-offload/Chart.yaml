@@ -1,0 +1,8 @@
+apiVersion: v2
+name: npu-offload
+description: MoE expert-offloading worker (hot experts in RNGD HBM, cold experts on host CPU) attached to llm-d as a decode ModelService
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+annotations:
+  airm.ai-computing.io/protocol: "0.1"
