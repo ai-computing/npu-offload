@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-19 08:50+09:00
+- **Updated**: 2026-10-19 16:49+09:00
 - **Agent**: claude@etri-ESC8000-E11
-- **Task**: Speculative decoding for Solar
-- **Last result**: EAGLE-3 v3 (87.5M reasoning-style tokens, 2-GPU queue training, 6.2h): tau 1.92 (k=6) on Solar's own outputs, up from 1.42 (v1); per prompt 1.59-2.56
-- **Next**: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
+- **Task**: OptimusPrime MoE offload (generalized tiers)
+- **Last result**: Solar-Open-100B on OptimusPrime exact: rngd-opt x2+cpu 8.56 tok/s (64/64), +gpu45 10.18 (bf16 tie at tok 2); Qwen3-30B rngd-opt x2(64)+cpu 15.42, compiled 18.42 tok/s; native dispatcher +20-40%; ModelSpec step 1 done
+- **Next**: block providers + RNGD in-process segment executor (generalized solar_engine) to reach PoC 31+ tok/s through the planner
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,27 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-19 16:49+09:00 — OptimusPrime MoE offload (generalized tiers)
+
+- Result: Solar-Open-100B on OptimusPrime exact: rngd-opt x2+cpu 8.56 tok/s (64/64), +gpu45 10.18 (bf16 tie at tok 2); Qwen3-30B rngd-opt x2(64)+cpu 15.42, compiled 18.42 tok/s; native dispatcher +20-40%; ModelSpec step 1 done
+- Next: block providers + RNGD in-process segment executor (generalized solar_engine) to reach PoC 31+ tok/s through the planner
+- Metrics: tok_s=8.56
+- Params: model=Solar-Open-100B, tiers=rngd-opt_x2+cpu
+- Experiments: experiments/2026-10-19-optimus-moe-offload-tiers.md
+- By: claude@etri-ESC8000-E11 · main@3be2bc0-dirty
+
+### 2026-10-19 09:55+09:00 — NPUOFF-31 ✅
+
+- Result: PR #1 updated (airm/v0.1 e9d7289): rm-core v0.1.1; selftest reports test_airm_runner as SKIP when the entry point is not registered (was KeyError): uninstalled 5/6 passed + 1 skipped exit 0, installed 6/6; rm_core.conformance exit 0 (sim/loopback/greedy PASS); moe_offload_decode_ms_per_token marked deprecated per PROTOCOL §6; check_sensitive clean; review comment posted
+- Next: build worker image and run the chart on llm-d (NPUOFF-29)
+- By: claude@etri-ESC8000-E11 · main@3be2bc0-dirty
+
+### 2026-10-19 09:10+09:00 — NPUOFF-30 ✅
+
+- Result: PR https://github.com/ai-computing/npu-offload/pull/1 (airm/v0.1): runner airm.workloads:npu-offload loads via registry.load; rm_core.conformance exit 0 (sim/loopback/greedy PASS; v0.1 has no airm.workloads check); selftest 6/6; helm lint/template OK; check_sensitive clean
+- Next: build worker image and run the chart on llm-d (NPUOFF-29); rm-core issue: conformance check for airm.workloads, candidate metric expert_hit_pct
+- By: claude@etri-ESC8000-E11 · main@3be2bc0-dirty
 
 ### 2026-10-19 08:50+09:00 — Speculative decoding for Solar
 
