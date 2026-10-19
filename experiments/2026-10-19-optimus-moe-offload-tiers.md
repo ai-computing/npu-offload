@@ -110,3 +110,11 @@ out-of-process NPU calls are structural. Next: block-level restructuring (ModelS
   a generic converter (custom_converter: extend_triton_op -> triton_custom, reads the kernel's metadata from the Triton
   cache). A minimal SwiGLU-gate kernel in a compiled FFN did not convert yet (TVM frontend got a dict instead of a
   tensor); next: reproduce one vllm-rbln kernel end to end as a known-good baseline, then adapt.
+- ATOM custom-kernel follow-up: the compiler reads hints from ~/.triton/cache_rbln/<md5(op name + input shapes)>/<op>.json,
+  written by rblib.write_rtosa from the kernel *function* name, so op name and kernel name must match (fixed: frontend
+  then accepts the op). Every user kernel then fails at `RBLNCompileError: Graph Generation: [DEVICE_GRAPH_CONVERSION]`
+  - mul-only, sigmoid, exp bodies, 2-D host_layout "1:2", torch.compile(rbln_backend, strict) and
+  rebel.compile_from_torch alike - including a previously written identity spike on this host (scripts/spike/
+  spike12c, TP=1). vllm-rbln's attention kernels compile through dedicated converters. Conclusion: with
+  rebel-compiler 0.11 user-defined rbln_triton_ops are not usable on ATOM without vendor guidance; the ATOM hybrid is
+  graph-level for now (RBLN graphs, ~60 us per call).
