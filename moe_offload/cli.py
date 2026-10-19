@@ -1,4 +1,4 @@
-"""moe-offload CLI:  plan | budget | worker | gateway | selftest"""
+"""moe-offload CLI:  plan | budget | worker | gateway | airm | selftest"""
 import argparse, json, sys
 
 
@@ -34,8 +34,12 @@ def main(argv=None):
     b.add_argument("--lm-on-a", action="store_true")
     sub.add_parser("worker", help="OpenAI-compatible worker (args: see moe_offload.worker)", add_help=False)
     sub.add_parser("gateway", help="expert-affinity gateway (args: see moe_offload.llmd.gateway)", add_help=False)
+    sub.add_parser("airm", help="ai-rm workload runner npu-offload (args: see moe_offload.airm)", add_help=False)
     sub.add_parser("selftest", help="NPU-free regression tests")
     argv = sys.argv[1:] if argv is None else argv
+    if argv and argv[0] == "airm":
+        from .airm import main as m
+        return m(argv[1:])
     if argv and argv[0] in ("worker", "gateway"):
         sys.argv = [f"moe-offload {argv[0]}"] + argv[1:]
         if argv[0] == "worker":

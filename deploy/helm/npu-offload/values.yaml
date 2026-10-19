@@ -1,0 +1,29 @@
+# npu-offload worker: ai-rm workload runner `npu-offload` (moe_offload.airm), kind=serve.
+# No site values here (registry, model storage, gateway URL): they come from ai-rm deploy/clusters/<name>/ overrides.
+enabled: true
+image: {repository: "", tag: ""}          # empty -> npu-offload-worker:<appVersion>
+airm:
+  kvTransport: ""                         # none: expert offloading moves weights/activations, not KV
+  placement: ""
+  metricsPort: 9400                       # airm_* series + moe_offload_* on /metrics
+nodeAffinity: {}                          # empty -> require node label airm.ai-computing.io/furiosa.RNGD
+resources:
+  limits: {furiosa.ai/rngd: 2}            # the reference engine drives two RNGD cards
+
+replicas: 1
+port: 8101                                # OpenAI API (/v1/completions, /v1/chat/completions), /health
+model:
+  name: solar-open-100b                   # served model name = llm-d.ai/model label
+  path: /models/model                     # HF snapshot mount (tokenizer, chat template)
+  volume: {}                              # site override, e.g. {persistentVolumeClaim: {claimName: ...}}
+engine:
+  binary: /opt/solar_engine/solar_engine
+  data: /opt/solar_engine/data
+  env: {}                                 # extra engine env (defaults: moe_offload.engine.SOLAR_ENV)
+dmaHeap: true                             # mount /dev/dma_heap for page-locked DMA buffers (PIN_BOUNCE)
+extraEnv: []                              # e.g. LLMD_GATEWAY_URL from a site Secret/ConfigMap
+llmd:
+  role: decode                            # llm-d ModelService role label
+  inferencePool:
+    create: false                         # llm-d ModelService normally owns the InferencePool and EPP
+    eppName: ""

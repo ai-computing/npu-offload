@@ -11,7 +11,7 @@ With --gateway URL the worker registers (role "both"), heartbeats its in-flight 
       --data track2_opt/solar_engine/data --model <hf dir> --port 8101 [--gateway http://127.0.0.1:8080]
   python3 -m moe_offload.worker --mock --port 8101            # NPU-free
 """
-import argparse, json, os, socket, threading, time, urllib.request
+import argparse, collections, json, os, socket, threading, time, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from . import siteenv
@@ -28,11 +28,13 @@ class Stats:
         self.requests = self.tokens = 0
         self.hit_ewma = None; self.ms_ewma = None; self.ctx = 0
         self.cls = {}
+        self.recent = collections.deque(maxlen=256)   # (tokens, decode ms/token) per request
 
     def done(self, cls, rec, n_out):
         with self.lock:
             self.requests += 1; self.tokens += n_out
             h, ms = rec.get("hit_rate", 0.0), rec.get("decode_ms_per_tok", 0.0)
+            if ms and n_out: self.recent.append((n_out, ms))
             self.hit_ewma = h if self.hit_ewma is None else 0.7 * self.hit_ewma + 0.3 * h
             if ms: self.ms_ewma = ms if self.ms_ewma is None else 0.7 * self.ms_ewma + 0.3 * ms
             c = self.cls.setdefault(cls, [0, 0.0]); c[0] += 1; c[1] = h if c[0] == 1 else 0.7 * c[1] + 0.3 * h
@@ -56,6 +58,7 @@ class Worker:
         self.eng, self.tk, self.model, self.wid, self.ctx_max = engine, tokenizer, model_name, wid, ctx_max
         self.st = Stats()
         self.gateway = None
+        self.metric_hooks = []                # callables returning extra /metrics text (moe_offload.airm)
         self.gen_lock = threading.Lock()      # one decode stream per engine: later requests queue here
 
     # ---- generation ----
@@ -158,7 +161,9 @@ def make_handler(w):
             self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data)
         def do_GET(self):
             p = self.path.rstrip("/")
-            if p == "/metrics": self._send(200, w.st.prometheus(w.model, w.ctx_max), "text/plain; version=0.0.4")
+            if p == "/metrics":
+                self._send(200, w.st.prometheus(w.model, w.ctx_max) + "".join(h() for h in w.metric_hooks),
+                           "text/plain; version=0.0.4")
             elif p in ("/health", "/healthz"): self._send(200, {"ok": True, "wid": w.wid})
             elif p == "/v1/models": self._send(200, {"object": "list", "data": [{"id": w.model, "object": "model"}]})
             else: self._send(404, {"error": "not found"})

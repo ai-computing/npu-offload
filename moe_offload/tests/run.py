@@ -2,12 +2,16 @@
 import json, threading, time, urllib.request
 from http.server import ThreadingHTTPServer
 
-from moe_offload import placement, budget
+from moe_offload import placement, budget, airm
 from moe_offload.spec import ModelSpec
 from moe_offload.worker import Worker, make_handler, split_reasoning
 from moe_offload.engine import MockEngine
 from moe_offload.llmd import gateway as gw
 from moe_offload.llmd.affinity import classify
+
+class Skip(Exception):
+    """Raised by a test that cannot run here; reported as SKIP, not as a failure."""
+
 
 SOLAR = ModelSpec("solar_open", 4096, 48, 64, 8, 128, 128, 8, 1280, 1, 196608)
 
@@ -80,8 +84,35 @@ def test_gateway_affinity():
     gsrv.shutdown()
 
 
+def test_airm_runner():
+    from rm_core import ContractError, Workload, registry
+    if "npu-offload" not in registry.available("airm.workloads"):
+        raise Skip("airm.workloads:npu-offload entry point not registered; run `pip install -e .`")
+    run = registry.load("airm.workloads", "npu-offload")
+    tiers = airm.memory_tiers()
+    assert tiers[-1].kind == "host-dram" and all(t.capacity_bytes > 0 for t in tiers)
+    for bad in (Workload(kind="train", model="m"), Workload(kind="decode", model="m")):
+        try: run(bad, mock=True, kv_transport="p2p" if bad.kind == "decode" else "")
+        except ContractError: continue
+        raise AssertionError(f"runner accepted {bad}")
+    ms = run(Workload(kind="decode", model="mock"), mock=True, mock_ms=2.0, prompt=[1, 2, 3], max_new=4, repeat=3)
+    assert {m.name for m in ms} == {"tok_s", "tpot_p50_ms", "tpot_p90_ms"} and abs(ms[0].value - 500) < 1e-6
+    h = run(Workload(kind="serve", model="mock"), mock=True, mock_ms=0.2, port=0, metrics_port=0, gateway="", block=False)
+    url = f"http://127.0.0.1:{h.servers[0].server_address[1]}"
+    _post(url + "/v1/completions", {"prompt": "hello", "max_tokens": 3})
+    m = urllib.request.urlopen(f"http://127.0.0.1:{h.servers[1].server_address[1]}/metrics").read().decode()
+    for k in ("airm_tok_s{", "airm_tpot_p50_ms{", "airm_tpot_p90_ms{", 'moe_offload_memory_tier_capacity_bytes{tier="host-dram"'):
+        assert k in m, (k, m)
+    for s in h.servers: s.shutdown()
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    skipped = 0
     for t in tests:
-        t0 = time.time(); t(); print(f"PASS {t.__name__} ({time.time() - t0:.2f}s)")
-    print(f"{len(tests)}/{len(tests)} passed")
+        t0 = time.time()
+        try: t()
+        except Skip as e:
+            skipped += 1; print(f"SKIP {t.__name__}: {e}"); continue
+        print(f"PASS {t.__name__} ({time.time() - t0:.2f}s)")
+    print(f"{len(tests) - skipped}/{len(tests)} passed" + (f", {skipped} skipped" if skipped else ""))
