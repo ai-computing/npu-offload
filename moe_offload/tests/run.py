@@ -9,6 +9,10 @@ from moe_offload.engine import MockEngine
 from moe_offload.llmd import gateway as gw
 from moe_offload.llmd.affinity import classify
 
+class Skip(Exception):
+    """Raised by a test that cannot run here; reported as SKIP, not as a failure."""
+
+
 SOLAR = ModelSpec("solar_open", 4096, 48, 64, 8, 128, 128, 8, 1280, 1, 196608)
 
 
@@ -82,7 +86,9 @@ def test_gateway_affinity():
 
 def test_airm_runner():
     from rm_core import ContractError, Workload, registry
-    run = registry.load("airm.workloads", "npu-offload")         # needs `pip install -e .` (entry point)
+    if "npu-offload" not in registry.available("airm.workloads"):
+        raise Skip("airm.workloads:npu-offload entry point not registered; run `pip install -e .`")
+    run = registry.load("airm.workloads", "npu-offload")
     tiers = airm.memory_tiers()
     assert tiers[-1].kind == "host-dram" and all(t.capacity_bytes > 0 for t in tiers)
     for bad in (Workload(kind="train", model="m"), Workload(kind="decode", model="m")):
@@ -102,6 +108,11 @@ def test_airm_runner():
 
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
+    skipped = 0
     for t in tests:
-        t0 = time.time(); t(); print(f"PASS {t.__name__} ({time.time() - t0:.2f}s)")
-    print(f"{len(tests)}/{len(tests)} passed")
+        t0 = time.time()
+        try: t()
+        except Skip as e:
+            skipped += 1; print(f"SKIP {t.__name__}: {e}"); continue
+        print(f"PASS {t.__name__} ({time.time() - t0:.2f}s)")
+    print(f"{len(tests) - skipped}/{len(tests)} passed" + (f", {skipped} skipped" if skipped else ""))
