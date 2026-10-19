@@ -118,3 +118,8 @@ out-of-process NPU calls are structural. Next: block-level restructuring (ModelS
   spike12c, TP=1). vllm-rbln's attention kernels compile through dedicated converters. Conclusion: with
   rebel-compiler 0.11 user-defined rbln_triton_ops are not usable on ATOM without vendor guidance; the ATOM hybrid is
   graph-level for now (RBLN graphs, ~60 us per call).
+- ATOM as an expert tier (graph level): one RBLN graph per expert with baked weights is the fastest decode layout on
+  RBLN-CA22 (rebel-compiler 0.11): ~170 us per call + ~55 us per expert; a graph with 8/16/32 experts and a dense
+  gate takes 0.62/1.0/2.1 ms; device-side expert selection by runtime ids (index_select) 2.4 ms for 8 of 16 (copies
+  weights). `atom` backend (aicomp 68cbc38): Qwen3-30B expert shape vs cpu backend PASS (rel 0.008), k=1..4 experts
+  273/476/677/888 us; tiny qwen3_moe with experts on atom:0 + cpu: logits rel err 0.0038 PASS. bf16 works.
