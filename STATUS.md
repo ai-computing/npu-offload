@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-19 17:18+09:00
+- **Updated**: 2026-10-19 21:08+09:00
 - **Agent**: claude@etri-ESC8000-E11
-- **Task**: OptimusPrime MoE offload (generalized tiers)
-- **Last result**: ATOM expert tier works (per-expert RBLN graphs, ~210us/expert, PASS); engine selection runs Solar on the PoC engine at 29.4 tok/s decode; ModelSpec/providers/engine registry pushed (aicomp feat/optimus-moe-offload)
-- **Next**: template PoC dense kernels for more geometries (step 3); ATOM custom kernels pending SDK support
+- **Task**: NPUOFF-32
+- **Last result**: Real-model LoRA with expert offload: Qwen3-30B-A3B 3.21->0.38, gemma-4-26B 6.42->0.72 (1 H100 20GB + CPU); RNGD Llama-1B LoRA 3.75->0.59
+- **Next**: RNGD Qwen2.5 LoRA / Llama full FT results; PR creation pending user OK
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,14 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-19 21:08+09:00 — NPUOFF-32
+
+- Result: Real-model LoRA with expert offload: Qwen3-30B-A3B 3.21->0.38, gemma-4-26B 6.42->0.72 (1 H100 20GB + CPU); RNGD Llama-1B LoRA 3.75->0.59
+- Next: RNGD Qwen2.5 LoRA / Llama full FT results; PR creation pending user OK
+- Params: offload_gpu_gb=20, seq_len=128, steps=20
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@etri-ESC8000-E11 · main@27cbae8-dirty
 
 ### 2026-10-19 17:18+09:00 — OptimusPrime MoE offload (generalized tiers)
 
