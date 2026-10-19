@@ -1,0 +1,15 @@
+{{- if and .Values.enabled .Values.llmd.inferencePool.create }}
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferencePool
+metadata:
+  name: {{ include "npu-offload.fullname" . }}
+  labels:
+    {{- include "npu-offload.labels" . | nindent 4 }}
+spec:
+  targetPortNumber: {{ .Values.port }}
+  selector:
+    llm-d.ai/inferenceServing: "true"
+    llm-d.ai/model: {{ .Values.model.name | quote }}
+  extensionRef:
+    name: {{ required "llmd.inferencePool.eppName is required when creating the InferencePool" .Values.llmd.inferencePool.eppName }}
+{{- end }}

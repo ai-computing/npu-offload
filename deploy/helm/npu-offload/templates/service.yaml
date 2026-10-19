@@ -1,0 +1,17 @@
+{{- if .Values.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "npu-offload.fullname" . }}
+  labels:
+    {{- include "npu-offload.labels" . | nindent 4 }}
+  annotations:
+    airm.ai-computing.io/scrape: "true"
+    airm.ai-computing.io/port: {{ .Values.airm.metricsPort | quote }}
+spec:
+  selector:
+    {{- include "npu-offload.selectorLabels" . | nindent 4 }}
+  ports:
+    - {name: http, port: {{ .Values.port }}, targetPort: http}
+    - {name: metrics, port: {{ .Values.airm.metricsPort }}, targetPort: metrics}
+{{- end }}
