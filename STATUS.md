@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-19 21:08+09:00
+- **Updated**: 2026-10-19 22:34+09:00
 - **Agent**: claude@etri-ESC8000-E11
 - **Task**: NPUOFF-32
-- **Last result**: Real-model LoRA with expert offload: Qwen3-30B-A3B 3.21->0.38, gemma-4-26B 6.42->0.72 (1 H100 20GB + CPU); RNGD Llama-1B LoRA 3.75->0.59
-- **Next**: RNGD Qwen2.5 LoRA / Llama full FT results; PR creation pending user OK
+- **Last result**: RNGD Qwen2.5-0.5B LoRA via train()/npu-lora: loss 2.41->0.49 / 30 steps, ~1.7 s/step
+- **Next**: RNGD Llama-1B full FT result
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,14 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-19 22:34+09:00 — NPUOFF-32
+
+- Result: RNGD Qwen2.5-0.5B LoRA via train()/npu-lora: loss 2.41->0.49 / 30 steps, ~1.7 s/step
+- Next: RNGD Llama-1B full FT result
+- Params: device=rngd, seq_len=128
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@etri-ESC8000-E11 · main@25ad364-dirty
 
 ### 2026-10-19 21:08+09:00 — NPUOFF-32
 

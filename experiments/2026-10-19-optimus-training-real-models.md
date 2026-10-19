@@ -42,6 +42,7 @@ HF_HUB_OFFLINE=1 python3 train_auto.py --model unsloth/Llama-3.2-1B-Instruct --d
 | Qwen3-30B-A3B-Instruct-2507 (bf16) | 1× H100 + CPU | 2275 / 3869 | 20 | 3.2067 -> 0.3811 | 184 s |
 | gemma-4-26B-A4B-it (bf16, tf 5.8.1) | 1× H100 + CPU | 1805 / 2035 | 20 | 6.4158 -> 0.7231 | 202 s |
 | Llama-3.2-1B-Instruct (LoRA, npu-lora) | RNGD chip 0 | - | 30 | 3.7525 -> 0.5886 | 8102 s (compile 8065 s, then ~1.2 s/step) |
+| Qwen2.5-0.5B-Instruct (LoRA, npu-lora qwen2 block) | RNGD chip 1 | - | 30 | 2.4085 -> 0.4879 | 2399 s (compile 2349 s resumed from part cache after a 10000 s timeout; ~1.7 s/step) |
 
 Failed attempts (same day): Gemma-4 OOM (78.9 GiB, spec bug), Qwen3/Gemma-4 backward assert (furiosa autoload).
 Tiny probes after the fix: qwen3_moe / gemma4_text LoRA offload-hot 0.5 bf16 first-step loss = HF (5.07301 vs 5.07291,
@@ -51,5 +52,5 @@ Tiny probes after the fix: qwen3_moe / gemma4_text LoRA offload-hot 0.5 bf16 fir
 
 LoRA training with experts offloaded works on real 26–30B MoE checkpoints on a single GPU. Loss drop is on a tiny
 synthetic set (memorization), so it shows the gradient path works, not model quality. RNGD LoRA works for Llama
-dense; first compile is 2.2 h (cached afterwards). Open: RNGD Qwen2.5 LoRA and Llama full FT (running), RNGD MoE
+dense; first compile is 2.2 h (cached afterwards). Qwen2 block (q/k/v bias) verified on silicon. Open: RNGD Llama full FT (running), RNGD MoE
 training (needs host-side expert backward).
