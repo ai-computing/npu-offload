@@ -3,7 +3,7 @@
 Loss mask = every generated token. Mixed with prep.py's chat data (data_v1.pt).
 usage: python3 prep2.py out.pt [n_nemotron] [n_mot] [max_len]
 """
-import glob, json, random, re, sys
+import glob, json, os, random, re, sys
 import pandas as pd
 import torch
 from transformers import AutoTokenizer
@@ -25,7 +25,7 @@ def main():
     n_nem = int(sys.argv[2]) if len(sys.argv) > 2 else 8574
     n_mot = int(sys.argv[3]) if len(sys.argv) > 3 else 8000
     max_len = int(sys.argv[4]) if len(sys.argv) > 4 else 2048
-    d = sorted(glob.glob('/home/user/.cache/huggingface/hub/models--upstage--Solar-Open-100B/snapshots/*'))[-1]
+    d = sorted(glob.glob(os.path.expanduser('~/.cache/huggingface/hub/models--upstage--Solar-Open-100B/snapshots/*')))[-1]
     tk = AutoTokenizer.from_pretrained(d)
     samples = []
     rows = [json.loads(l) for l in open("raw/nemotron_chat.jsonl")]

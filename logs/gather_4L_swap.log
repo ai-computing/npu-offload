@@ -3,7 +3,7 @@ prompt tokens: 5
 [cpu] tokens=[39651, 27923, 23080, 4580, 9369, 63248, 4539, 80348, 123218, 74947, 27923, 23080] text=' compromise peacefully co illogicality chemically-physical intermediaries peacefully' decode 396 ms/tok hit=0 miss=512 t_npu=0.00s t_cpu=0.81s wait=0.79s swaps=0 t_swap=0.00s hit_rate=0.000
 [rt] host weights loaded (4 layers) 3s
 [rt] device upload: dense 4L + 184 experts in 3s
-/home/user/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+/home/<user>/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
   result = unpickler.load()
 [npu:rngd:0] load ('qkv', 1, 0) in 0.0s
 [npu:rngd:0] load ('post', 1, 0) in 0.0s
@@ -34,9 +34,9 @@ Traceback (most recent call last):
     self.run()
   File "/usr/lib/python3.10/threading.py", line 953, in run
     self._target(*self._args, **self._kwargs)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 283, in run_dev_g
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 283, in run_dev_g
     outs.append(npu.graph("expg", Tb, (K, S))(hd, npu.put(G), npu.put(ids), Wgu, Wd).cpu()[:T].float())
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 87, in put
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 87, in put
     return t.to(self.dev)
 torch.OutOfMemoryError: failed to allocate 32 bytes on DRAM_SHARED
 [hybrid] tokens=[39651, 27923, 23080, 4580, 9369, 63248, 4539, 80348, 123218, 74947, 27923, 23080] text=' compromise peacefully co illogicality chemically-physical intermediaries peacefully' decode 336 ms/tok hit=271 miss=241 t_npu=0.24s t_cpu=0.59s wait=0.35s swaps=19 t_swap=0.09s hit_rate=0.529

@@ -1,6 +1,6 @@
-/home/user/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.pin_memory() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:46.)
+/home/<user>/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.pin_memory() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:46.)
   return {k: v.pin_memory("cuda") for k, v in d.items()} if pin else d
-/home/user/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.is_pinned() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:31.)
+/home/<user>/workspace/npu_offload/eagle3/extract.py:34: DeprecationWarning: The argument 'device' of Tensor.is_pinned() is deprecated. Please do not pass this argument. (Triggered internally at /pytorch/aten/src/ATen/native/Memory.cpp:31.)
   return {k: v.pin_memory("cuda") for k, v in d.items()} if pin else d
 [1/29] 97798 tok in 41s
 [2/29] 98271 tok in 41s

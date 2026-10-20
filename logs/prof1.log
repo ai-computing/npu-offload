@@ -1,7 +1,7 @@
 prompt tokens: 82
 [rt] host weights loaded (48 layers) 63s
 [rt] device upload: dense 48L + 2208 experts in 44s
-/home/user/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+/home/<user>/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
   result = unpickler.load()
 [npu:rngd:0] load ('qkv', 1, 0) in 0.0s
 [npu:rngd:0] load ('post', 1, 0) in 0.0s
@@ -27,54 +27,54 @@ prompt tokens: 82
 Location:
     /root/.cargo/git/checkouts/device-runtime-6898824721bec299/a5a3f65/device-runtime/src/memory/allocator_impl/first_fit_allocator.rs:80:9))
 Traceback (most recent call last):
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 520, in <module>
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 520, in <module>
     toks, times = rt.generate(ids, a.n)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 409, in generate
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 409, in generate
     lg = self.prefill(ids)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 404, in prefill
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 404, in prefill
     out = self.forward(ids[s:s + T_BUCKETS[-1]])
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 393, in forward
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 393, in forward
     x = self.layer(l, x, pos, Tb, T)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 379, in layer
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 379, in layer
     moe = self._moe(l, h2, Tb, T)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 332, in _moe
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 332, in _moe
     raise errs[0]
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 326, in safe
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 326, in safe
     try: f(*a)
-  File "/home/user/workspace/npu_offload/solar_hybrid/runtime.py", line 301, in run_dev_g
+  File "/home/<user>/workspace/npu_offload/solar_hybrid/runtime.py", line 301, in run_dev_g
     outs.append(npu.graph("expg", Tb, (K, S))(hd, npu.stage("G", G), npu.stage("ids", ids), Wgu, Wd)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
     return self._call_impl(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
     return forward_call(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 542, in forward
+  File "/home/<user>/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 542, in forward
     outputs = self.edf_module(inputs, profiles=profiles, device=device)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
     return self._call_impl(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
     return forward_call(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 436, in forward
+  File "/home/<user>/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 436, in forward
     outputs = self._execute(flatten_args, profiles=profiles, device=device)
-  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 425, in _execute
+  File "/home/<user>/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 425, in _execute
     npu_outputs = self._execute_edf(npu_inputs, profiles)
-  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 372, in _execute_edf
+  File "/home/<user>/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 372, in _execute_edf
     return torch.ops.furiosa.edf(
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_ops.py", line 1209, in __call__
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_ops.py", line 1209, in __call__
     return self._op(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 112, in autograd_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 112, in autograd_impl
     result = forward_no_grad(*args, Metadata(keyset, keyword_only_args))
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 41, in forward_no_grad
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_library/autograd.py", line 41, in forward_no_grad
     result = op.redispatch(keyset & _C._after_autograd_keyset, *args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_ops.py", line 826, in redispatch
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_ops.py", line 826, in redispatch
     return self._handle.redispatch_boxed(keyset, *args, **kwargs)  # type: ignore[return-value]
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 347, in backend_impl
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 347, in backend_impl
     result = self._backend_fns[device_type](*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_compile.py", line 54, in inner
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_compile.py", line 54, in inner
     return disable_fn(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 1181, in _fn
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_dynamo/eval_frame.py", line 1181, in _fn
     return fn(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 382, in wrapped_fn
+  File "/home/<user>/.local/lib/python3.10/site-packages/torch/_library/custom_ops.py", line 382, in wrapped_fn
     return fn(*args, **kwargs)
-  File "/home/user/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 58, in edf
+  File "/home/<user>/.local/lib/python3.10/site-packages/furiosa/torch/custom_ops/edf.py", line 58, in edf
     outputs = ir.allocate_edf_outputs(
 torch.OutOfMemoryError: failed to allocate 65536 bytes on DRAM_SHARED

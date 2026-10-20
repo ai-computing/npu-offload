@@ -14,4 +14,4 @@ The attention mask is not set and cannot be inferred from input because pad toke
 [9] ja P=86 D=47 31s :: '<|think|>The user asks in Japanese: "日本の四季について、それぞれの季節の特徴と代表的な行事を説明してください。" They'
 [10] ko_code P=88 D=47 21s :: '<|think|>The user asks in Korean: "파이썬으로 이진 탐색 트리를 구현하고 삽입, 삭제, 탐색 연산의 시간 복잡도를 설'
 [11] en_biz P=86 D=47 22s :: '<|think|>The user wants a short email to a client explaining a two-week delay in'
-saved /home/user/workspace/npu_offload/p0/results/routes.pt
+saved /home/<user>/workspace/npu_offload/p0/results/routes.pt
