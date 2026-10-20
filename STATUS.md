@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-19 08:50+09:00
-- **Agent**: claude@npu-node-2
-- **Task**: Speculative decoding for Solar
-- **Last result**: EAGLE-3 v3 (87.5M reasoning-style tokens, 2-GPU queue training, 6.2h): tau 1.92 (k=6) on Solar's own outputs, up from 1.42 (v1); per prompt 1.59-2.56
-- **Next**: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
+- **Updated**: 2026-10-20 10:47+09:00
+- **Agent**: claude@xeon-max
+- **Task**: NPUOFF-32
+- **Last result**: Solar-Open-100B LoRA with expert offload on 1 A100 + CPU: loss 3.53->0.60 / 10 steps (708 s); fixed host-memory duplication and per-pair backward OOM
+- **Next**: RNGD MoE LoRA (npu-train#6) on silicon; PD split per aicomp#69
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -54,6 +54,68 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-20 10:47+09:00 — NPUOFF-32
+
+- Result: Solar-Open-100B LoRA with expert offload on 1 A100 + CPU: loss 3.53->0.60 / 10 steps (708 s); fixed host-memory duplication and per-pair backward OOM
+- Next: RNGD MoE LoRA (npu-train#6) on silicon; PD split per aicomp#69
+- Params: model=Solar-Open-100B, offload_gpu_gb=40, steps=10
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@xeon-max · docs/optimus-offload-records@5cf81d4-dirty
+
+### 2026-10-19 22:41+09:00 — NPUOFF-32
+
+- Result: RNGD Llama-3.2-1B full FT via train()/npu-lora: loss 3.75->0.34 / 20 steps, ~1.6 s/step; HF reload generates trained answer
+- Next: PR creation and library repo location pending user decision; RNGD MoE training needs host-side expert backward
+- Params: device=rngd, method=full
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@npu-node-2 · main@2250c63-dirty
+
+### 2026-10-19 22:34+09:00 — NPUOFF-32
+
+- Result: RNGD Qwen2.5-0.5B LoRA via train()/npu-lora: loss 2.41->0.49 / 30 steps, ~1.7 s/step
+- Next: RNGD Llama-1B full FT result
+- Params: device=rngd, seq_len=128
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@npu-node-2 · main@25ad364-dirty
+
+### 2026-10-19 21:08+09:00 — NPUOFF-32
+
+- Result: Real-model LoRA with expert offload: Qwen3-30B-A3B 3.21->0.38, gemma-4-26B 6.42->0.72 (1 A100 20GB + CPU); RNGD Llama-1B LoRA 3.75->0.59
+- Next: RNGD Qwen2.5 LoRA / Llama full FT results; PR creation pending user OK
+- Params: offload_gpu_gb=20, seq_len=128, steps=20
+- Experiments: experiments/2026-10-19-optimus-training-real-models.md
+- By: claude@npu-node-2 · main@27cbae8-dirty
+
+### 2026-10-19 17:18+09:00 — OptimusPrime MoE offload (generalized tiers)
+
+- Result: ATOM expert tier works (per-expert RBLN graphs, ~210us/expert, PASS); engine selection runs Solar on the PoC engine at 29.4 tok/s decode; ModelSpec/providers/engine registry pushed (aicomp feat/optimus-moe-offload)
+- Next: template PoC dense kernels for more geometries (step 3); ATOM custom kernels pending SDK support
+- Metrics: tok_s=29.4
+- Params: model=Solar-Open-100B, engine=rngd-layer
+- Experiments: experiments/2026-10-19-optimus-moe-offload-tiers.md
+- By: claude@npu-node-2 · main@e6807c3-dirty
+
+### 2026-10-19 16:49+09:00 — OptimusPrime MoE offload (generalized tiers)
+
+- Result: Solar-Open-100B on OptimusPrime exact: rngd-opt x2+cpu 8.56 tok/s (64/64), +gpu45 10.18 (bf16 tie at tok 2); Qwen3-30B rngd-opt x2(64)+cpu 15.42, compiled 18.42 tok/s; native dispatcher +20-40%; ModelSpec step 1 done
+- Next: block providers + RNGD in-process segment executor (generalized solar_engine) to reach PoC 31+ tok/s through the planner
+- Metrics: tok_s=8.56
+- Params: model=Solar-Open-100B, tiers=rngd-opt_x2+cpu
+- Experiments: experiments/2026-10-19-optimus-moe-offload-tiers.md
+- By: claude@npu-node-2 · main@3be2bc0-dirty
+
+### 2026-10-19 09:55+09:00 — NPUOFF-31 ✅
+
+- Result: PR #1 updated (airm/v0.1 e9d7289): rm-core v0.1.1; selftest reports test_airm_runner as SKIP when the entry point is not registered (was KeyError): uninstalled 5/6 passed + 1 skipped exit 0, installed 6/6; rm_core.conformance exit 0 (sim/loopback/greedy PASS); moe_offload_decode_ms_per_token marked deprecated per PROTOCOL §6; check_sensitive clean; review comment posted
+- Next: build worker image and run the chart on llm-d (NPUOFF-29)
+- By: claude@npu-node-2 · main@3be2bc0-dirty
+
+### 2026-10-19 09:10+09:00 — NPUOFF-30 ✅
+
+- Result: PR https://github.com/ai-computing/npu-offload/pull/1 (airm/v0.1): runner airm.workloads:npu-offload loads via registry.load; rm_core.conformance exit 0 (sim/loopback/greedy PASS; v0.1 has no airm.workloads check); selftest 6/6; helm lint/template OK; check_sensitive clean
+- Next: build worker image and run the chart on llm-d (NPUOFF-29); rm-core issue: conformance check for airm.workloads, candidate metric expert_hit_pct
+- By: claude@npu-node-2 · main@3be2bc0-dirty
 
 ### 2026-10-19 08:50+09:00 — Speculative decoding for Solar
 
