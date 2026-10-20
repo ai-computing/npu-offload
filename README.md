@@ -407,6 +407,7 @@ PLAN.md, STATUS.md      design notes, decisions and running status
 |---|---|
 | 🧭 **Design and status** | [PLAN.md](PLAN.md) · [STATUS.md](STATUS.md) · [Solar engine spec](track2_opt/SOLAR_OPT_SPEC.md) |
 | 📊 **Measurements** | [Experiment records](experiments) · [Vendor runtime patches](track2_opt/solar_engine/vendor/furiosa-opt-rt/VENDOR_PATCHES.md) |
+| 🧩 **Kernel package** | [npu-kernels](npu-kernels) — RNGD expert FFN / GEMV generators, used by OptimusPrime's `rngd-opt` expert tier |
 | 🔬 **Background analysis** | [furiosa.torch internals](analysis/furiosa_torch_internals.md) · [Vendor MoE runtime](analysis/vendor_moe_runtime.md) |
 | 🔌 **ai-rm context** | [ai-rm](https://github.com/ai-computing/ai-rm) · [Optimus Prime consolidation plan](https://github.com/ai-computing/ai-rm/blob/master/docs/engine-integration.md) · [rm-core protocol](https://github.com/ai-computing/rm-core/blob/main/PROTOCOL.md) |
 

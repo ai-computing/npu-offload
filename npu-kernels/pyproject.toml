@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npu-kernels"
+version = "0.1.0"
+description = "Per-shape NPU kernel generators (FuriosaAI RNGD furiosa-opt: MoE expert FFN, GEMV) and expert server"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+
+[tool.setuptools.packages.find]
+include = ["npu_kernels*"]
+
+[tool.setuptools.package-data]
+"npu_kernels.rngd" = ["template/**/*", "gemv_template/**/*", "*.md"]
