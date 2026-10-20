@@ -2,7 +2,7 @@
 
 - **Date**: 2026-10-16
 - **Task**: Solar decode latency
-- **Host / device**: etri-ESC8000-E11, 2x RNGD (driver 2026.4, furiosa-opt 0.9.0), Xeon 4410Y x2
+- **Host / device**: npu-node-2, 2x RNGD (driver 2026.4, furiosa-opt 0.9.0), Xeon 4410Y x2
 - **Commit**: bb532fd
 
 ## Question
