@@ -10,7 +10,7 @@ assign = [list(range(32)) for _ in range(NL)]
 hx = [[W.expert(l, e) for e in range(32)] for l in range(NL)]
 wdir = "/dev/shm/solar_srv_test"
 t0 = time.time(); OC.export_tables(hx, assign, NL, wdir); print(f"export {time.time()-t0:.1f}s", flush=True)
-log = open("/home/gspark/workspace/npu_offload/logs/expert_srv_test.log", "w")
+log = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "logs", "expert_srv_test.log"), "w")
 srv = OC.OptExpertServer(wdir, NL, chip=chip, log=log)
 print(f"server ready in {srv.t_load:.1f}s", flush=True)
 torch.manual_seed(0)

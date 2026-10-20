@@ -3,7 +3,7 @@
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
 - **Updated**: 2026-10-19 08:50+09:00
-- **Agent**: claude@etri-ESC8000-E11
+- **Agent**: claude@npu-node-2
 - **Task**: Speculative decoding for Solar
 - **Last result**: EAGLE-3 v3 (87.5M reasoning-style tokens, 2-GPU queue training, 6.2h): tau 1.92 (k=6) on Solar's own outputs, up from 1.42 (v1); per prompt 1.59-2.56
 - **Next**: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
@@ -61,14 +61,14 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 - Next: self-distillation on Solar generations; 2-layer draft; then decide on T>1 verify kernels
 - Metrics: tau=1.92
 - Experiments: experiments/2026-10-16-eagle3-v3.md
-- By: claude@etri-ESC8000-E11 · main@25bb785-dirty
+- By: claude@npu-node-2 · main@25bb785-dirty
 
 ### 2026-10-16 15:01+09:00 — NPUOFF-28 ✅
 
 - Result: checker clean (no IPs/credentials found). Parametrized RNGD_LLMD (now required, no ~/ fallback) and worker --gateway default ($LLMD_GATEWAY_URL) via env + untracked cluster.local.env (moe_offload/siteenv.py, cluster.example.env); added ai-rm.yaml (l2-memory, service) and README ## ai-rm. selftest 5/5. Pushed bf2fe53
 - Next: eagle3/prep*.py and evalgen/*.json, logs/ contain /home/<user> paths (not secrets); container image + EPP plugin needed for llm-d
 - New todos: Build npu-offload worker container image and validate k8s manifest on llm-d cluster
-- By: claude@etri-ESC8000-E11 · main@bf2fe53-dirty
+- By: claude@npu-node-2 · main@bf2fe53-dirty
 
 ### 2026-10-16 13:42+09:00 — Speculative decoding for Solar
 
@@ -76,7 +76,7 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 - Next: eval v2 checkpoints; if tau >= 2.5 build T>1 verify kernels
 - Metrics: tau=1.42
 - Experiments: experiments/2026-10-16-eagle3-v1.md
-- By: claude@etri-ESC8000-E11 · main@bb532fd-dirty
+- By: claude@npu-node-2 · main@bb532fd-dirty
 
 ### 2026-10-16 13:42+09:00 — Solar decode latency
 
@@ -84,10 +84,10 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 - Next: repeat pinned A/B on a quiet box; diagnose LM_SPLIT layer slowdown
 - Metrics: tok_s=34.9, ms_per_tok=28.7
 - Experiments: experiments/2026-10-16-movdir64b-upload.md, experiments/2026-10-16-pinned-bounce.md, experiments/2026-10-16-bar-reads.md, experiments/2026-10-16-lm-head-split.md
-- By: claude@etri-ESC8000-E11 · main@bb532fd-dirty
+- By: claude@npu-node-2 · main@bb532fd-dirty
 
 ### 2026-10-16 10:39+09:00 — NPUOFF-1 ✅
 
 - Result: STATUS.md 부트스트랩 완료: Solar-100B bf16 2xRNGD 정확 모드 단일 요청 30.7-32.1 ms/tok (31-33 tok/s), MOVDIR64B 업로드로 약 30.0ms
 - Next: prefill(P4) 설계와 배치 서빙(P3/P5) 착수, 측정 결과를 experiments/에 기록
-- By: claude@etri-ESC8000-E11
+- By: claude@npu-node-2

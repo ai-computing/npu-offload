@@ -1,6 +1,6 @@
 prompt tokens: 82
 [rt] host weights loaded (48 layers) 17s
-/home/gspark/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
+/home/<user>/.local/lib/python3.10/site-packages/torch/serialization.py:2143: FutureWarning: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_leaf()` instead.
   result = unpickler.load()
 [npu:rngd:0] load ('qkv', 1, 0) in 0.0s
 [npu:rngd:0] load ('post', 1, 0) in 0.0s

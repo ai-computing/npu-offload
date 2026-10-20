@@ -187,7 +187,7 @@
    Compiling furiosa-mapping-types v0.9.0
    Compiling furiosa-opt-lower-types v0.9.0
    Compiling furiosa-opt-std v0.9.0
-   Compiling moe_opt v0.1.0 (/home/gspark/workspace/npu_offload/track2_opt/moe_opt)
+   Compiling moe_opt v0.1.0 (/home/<user>/workspace/npu_offload/track2_opt/moe_opt)
 warning: feature `stmt_expr_attributes` is declared but not used
  --> src/lib.rs:2:32
   |

@@ -4,7 +4,7 @@ loss_mask marks assistant-content tokens (and the closing <|end|>): the position
 predictions the draft head is trained on.
 usage: python3 prep.py out.pt [n_ultrachat] [n_koalpaca] [max_len]
 """
-import glob, random, sys
+import glob, os, random, sys
 import pandas as pd
 import torch
 from transformers import AutoTokenizer
@@ -32,7 +32,7 @@ def main():
     n_uc = int(sys.argv[2]) if len(sys.argv) > 2 else 1500
     n_ko = int(sys.argv[3]) if len(sys.argv) > 3 else 4000
     max_len = int(sys.argv[4]) if len(sys.argv) > 4 else 2048
-    d = sorted(glob.glob('/home/gspark/.cache/huggingface/hub/models--upstage--Solar-Open-100B/snapshots/*'))[-1]
+    d = sorted(glob.glob(os.path.expanduser('~/.cache/huggingface/hub/models--upstage--Solar-Open-100B/snapshots/*')))[-1]
     tk = AutoTokenizer.from_pretrained(d)
     rng = random.Random(0)
     uc = pd.read_parquet("raw/ultrachat_train_sft0.parquet")
