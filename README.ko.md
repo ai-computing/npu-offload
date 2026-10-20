@@ -400,6 +400,7 @@ PLAN.md, STATUS.md      design notes, decisions and running status
 |---|---|
 | 🧭 **설계와 현황** | [PLAN.md](PLAN.md) · [STATUS.md](STATUS.md) · [Solar 엔진 spec](track2_opt/SOLAR_OPT_SPEC.md) |
 | 📊 **측정** | [실험 기록](experiments) · [Vendor 런타임 패치](track2_opt/solar_engine/vendor/furiosa-opt-rt/VENDOR_PATCHES.md) |
+| 🧩 **커널 패키지** | [npu-kernels](npu-kernels) — RNGD expert FFN·GEMV 생성기, OptimusPrime `rngd-opt` expert tier가 사용 |
 | 🔬 **배경 분석** | [furiosa.torch 내부 구조](analysis/furiosa_torch_internals.md) · [Vendor MoE 런타임](analysis/vendor_moe_runtime.md) |
 | 🔌 **ai-rm 맥락** | [ai-rm](https://github.com/ai-computing/ai-rm) · [Optimus Prime 통합 계획](https://github.com/ai-computing/ai-rm/blob/master/docs/ko/engine-integration.md) · [rm-core protocol](https://github.com/ai-computing/rm-core/blob/main/PROTOCOL.md) |
 
