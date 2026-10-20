@@ -46,3 +46,25 @@ python3 .research/report.py \
 - If you commit, include `STATUS.md`, `experiments/` and `.research/events.jsonl` with the related
   code. Don't make commits only for reporting.
 <!-- research-hub:end -->
+
+## Contribution flow
+
+Follow the organization guide, [ai-computing/.github CONTRIBUTING.md](https://github.com/ai-computing/.github/blob/main/CONTRIBUTING.md)
+(GitHub flow). For agents that means:
+
+- **Issue first** for a bug, feature, performance change or API change: Problem, Evidence, Scope, Done when,
+  Owner (the repository's Issue templates). Research: one Issue per hypothesis, runs linked to it. Typos and
+  small obvious fixes may go straight to a PR. Plane tasks (research-hub) track research progress; GitHub
+  Issues track code changes; link one from the other.
+- **Branch per change** from the latest `main`: `<type>/<issue#>-<slug>` (`feat`, `fix`, `perf`, `docs`, `exp`),
+  in your own worktree. Never commit to `main`. Name the branch before opening the PR: renaming the head
+  branch of an open PR closes it.
+- **PR with one purpose**, filled in from the PR template: Background, Changes, Verification (commands and
+  results; for hardware or performance numbers: commit SHAs, hardware and SDK versions, inputs, correctness
+  criterion, method, results, how to reproduce), Compatibility and limits, Related Issue (`Closes #N` only
+  when the PR finishes it). Long work starts as a Draft PR.
+- Experiment records, `STATUS.md` and `.research/events.jsonl` go in the PR of the work they describe, or in a
+  docs PR of their own.
+- Before pushing: `python3 .research/check_sensitive.py`; name hosts by role (e.g. "RNGD+ATOM host"), not by
+  hostname or IP, in new prose.
+- The maintainer reviews and merges (Squash and merge); agents do not merge to `main`.
