@@ -3,6 +3,8 @@
   plan(H, F) / generate / check     routed-expert FFN kernel + CPU-emulation check + expert server (template/)
   plan_gemv(rows, cols) / generate_gemv   weight-streaming GEMV (attention projections, router, LM head)
   build_server(plan, emulate)       build the expert server binary (`cargo furiosa-opt build` or emulator)
+  plan_layer(geometry) / generate_layer   decoder-layer engine (attention block + router, experts, LM head, eval and
+                                    decode-engine binaries) for a model geometry (layer_template/)
 
 A new shape is supported by computing a plan, not by hand-editing kernels. The expert server speaks the stdin/stdout
 protocol documented in template/src/bin/server.rs.tpl (LOAD / RUN / UPDATE / RUN_WSUM).
@@ -10,3 +12,5 @@ protocol documented in template/src/bin/server.rs.tpl (LOAD / RUN / UPDATE / RUN
 from .build import build_server, cache_root  # noqa: F401
 from .gemv import GemvPlan, generate_gemv, plan_gemv  # noqa: F401
 from .generate import TilePlan, check, crate_name, generate, plan  # noqa: F401
+from .layer import (QWEN3_30B_A3B, SOLAR_OPEN_100B, LayerGeometry, LayerPlan, generate_layer,  # noqa: F401
+                    geometry_from_hf, plan_layer)

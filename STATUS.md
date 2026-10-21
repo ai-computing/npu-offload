@@ -2,11 +2,11 @@
 
 <!-- research-hub:header:begin (maintained by .research/report.py; keep the "- **Key**: value" format) -->
 - **State**: active
-- **Updated**: 2026-10-20 10:47+09:00
-- **Agent**: claude@xeon-max
-- **Task**: NPUOFF-32
-- **Last result**: Solar-Open-100B LoRA with expert offload on 1 A100 + CPU: loss 3.53->0.60 / 10 steps (708 s); fixed host-memory duplication and per-pair backward OOM
-- **Next**: RNGD MoE LoRA (npu-train#6) on silicon; PD split per aicomp#69
+- **Updated**: 2026-10-21 19:58+00:00
+- **Agent**: claude@npo-dev-wjpk6
+- **Task**: RNGD layer engine: shape templates for attention / norm / router (#3)
+- **Last result**: Qwen3-30B-A3B layer engine generated from the geometry: tokens = HF (3 prompts x 32 exact; 128-token runs exact except one 1-ulp swap), 25-30 tok/s on one RNGD (88 hot experts/layer); Solar geometry passes the same kernel checks
+- **Next**: pack x2/h2/logits into one download, device-side expert sum, server mode for OptimusPrime
 - **Blockers**: none
 <!-- research-hub:header:end -->
 
@@ -18,6 +18,7 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Findings
 
 <!-- Durable conclusions with numbers and a pointer to the experiment record. Newest first. -->
+- **레이어 엔진을 모델 geometry에서 생성 (2026-10-22, #3)**: `npu_kernels.rngd.layer`(`plan_layer`, `generate_layer`)가 attention 블록(q/k norm, RoPE, KV, attention, o_proj, post-norm, router), expert, LM head 커널과 decode 엔진을 만든다. Qwen3-30B-A3B를 RNGD 1장에서 HF와 같은 토큰으로 decode한다(프롬프트 3개 × 32토큰 전부 일치, 128토큰 실행은 1-ulp 교차 1회 외 일치). hot expert 88개/레이어(적중률 0.86-0.94)에서 25-30 tok/s다. Solar geometry도 같은 커널 검사를 통과하며, 손으로 쓴 Solar 엔진은 바꾸지 않았다 (`experiments/2026-10-22-rngd-layer-templates-qwen3.md`).
 - **PCIe 업로드 지연 단축 (2026-10-16)**: vendor 런타임을 패치해 MOVDIR64B로 BAR4 창에 쓴다(`MMIO_VEC=2 MMIO_LIMIT=32768`). 칩 A 업로드 39→21µs, 칩 B 77→50µs, decode 31.6→약 30.0ms(p2, 약 33 tok/s)이며 토큰은 동일하다. BAR 창 직접 읽기(`MMIO_RT`)는 정확했지만 종단 시간 차이는 없었다(30.3/30.5 vs 30.1/30.2ms). 레이어당 임계 경로는 칩 A 약 175µs + max(칩 B 약 240µs, CPU cold 약 237µs)다 (`PLAN.md` §7.4).
 - **정확 bf16 단일 요청으로 30 tok/s 달성 (2026-10-16)**: `URES=1 LM_ON_B=1` + mix4 배치 + 패치한 `vendor/furiosa-opt-rt`(SQPOLL_OFF=1, DMA_IDLE_US=50) 구성이다. 32토큰 생성, REPEAT=5 중앙값 기준 프롬프트 4개에서 30.7–32.1 ms/tok(31.2–32.6 tok/s), 적중률 0.815–0.889다. 신규 프롬프트 3개 포함. 고정 토큰열(FORCE)에서는 34.2ms(29.2 tok/s)로 경계선이다. 호스트 레퍼런스와의 토큰 분기는 bf16 로짓 동점(30.375)으로 확인했다 (`PLAN.md` §7.3, `track2_opt/solar_engine/data*`).
 - **정확 모드 동시 2요청 (2026-10-16)**: NSTREAM=2로 합산 30.8 tok/s(요청당 15.4 tok/s)이며 출력은 단일 요청과 같다. 당시 단일 요청 정확 모드는 40.1ms(24.9 tok/s)였다 (`PLAN.md` §7.2).
@@ -54,6 +55,15 @@ PolyStrata 방식 MoE 오프로드를 Furiosa RNGD에 이식한다. hot expert�
 ## Log
 
 <!-- research-hub:log (report.py inserts new entries below this line, newest first) -->
+
+### 2026-10-21 19:58+00:00 — RNGD layer engine: shape templates for attention / norm / router (#3)
+
+- Result: Qwen3-30B-A3B layer engine generated from the geometry: tokens = HF (3 prompts x 32 exact; 128-token runs exact except one 1-ulp swap), 25-30 tok/s on one RNGD (88 hot experts/layer); Solar geometry passes the same kernel checks
+- Next: pack x2/h2/logits into one download, device-side expert sum, server mode for OptimusPrime
+- Metrics: tok_s=28.4
+- Params: model=Qwen3-30B-A3B, e_t=88, device=rngd-x1
+- Experiments: experiments/2026-10-22-rngd-layer-templates-qwen3.md
+- By: claude@npo-dev-wjpk6 · feat@a93ef3d
 
 ### 2026-10-20 10:47+09:00 — NPUOFF-32
 
