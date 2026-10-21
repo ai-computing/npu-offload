@@ -318,12 +318,19 @@ def generate_layer(p: LayerPlan, out_dir: str, crate: str = None) -> str:
     return out_dir
 
 
-# q path after the GEMV, written into qkv_rope: per-head RMSNorm of q and k (Qwen3), then RoPE without the deferred
-# input-norm factor (the head norm is scale invariant); v still gets 1 / rms.
+# q path after the GEMV, written into qkv_rope: q and k divided by the deferred input-norm factor, per-head RMSNorm
+# (Qwen3), then RoPE.
 _QK_FRONT = """    let qs: DmTensor<bf16, Chip, C1, SliceQ, m![D]> = q3.to_dm(&mut device.tdma);
+    // undo the deferred input-norm factor before the head norm (its eps is not scale invariant)
+    let xq: DmTensor<bf16, Chip, C1, SliceQ, m![H]> = x.to_dm(&mut device.tdma);
+    let rq = rmsnorm::rms_s1(device, &xq);
+    let rq_vrf: VrfTensor<f32, Chip, C1, SliceQ, m![1 # 8]> =
+        device.sub.begin(rq.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
+    let qs = scale_inv(device, &qs, &rq_vrf);
     let qs = rmsnorm::head_norm(device, &qs, q_norm);
     let qs = rope::rope_vec(device, &qs, cos, sin);
     let q_out: HbmTensor<bf16, Chip, m![N, G, D]> = qs.to_hbm(&mut device.tdma);
+    let k = scale_inv(device, &k, &rms_vrf);
     let k = rmsnorm::head_norm(device, &k, k_norm);
     let k = rope::rope_vec(device, &k, cos, sin);
     store_kv(device, kv_offset, k, k_cache);

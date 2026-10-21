@@ -109,7 +109,10 @@ fn to_table(x: &[u16], ctx: usize) -> Vec<u16> {
 
 async fn block(rng: &mut SmallRng, bench: bool) -> eyre::Result<bool> {
     let mut ok = true;
-    for &c in CHUNKS {
+    // (launch size, x scale): the small-x case is layer 0 (embeddings ~1e-2), where the deferred input-norm factor
+    // must be undone before the per-head norm
+    let cases: Vec<(usize, f32)> = CHUNKS.iter().map(|&c| (c, 1.0)).chain(std::iter::once((CHUNKS[0], 0.02))).collect();
+    for (c, xs) in cases {
         let ctx = env("CTX", (c * T).min(1300) - if c == 1 { 211 } else { 0 });
         if host::chunks_for(ctx) != Some(c) {
             continue;
@@ -117,7 +120,7 @@ async fn block(rng: &mut SmallRng, bench: bool) -> eyre::Result<bool> {
         let pos = ctx - 1;
         let mut dev = Device::new(${CRATE}::ffn::ffn_k.topology())?;
         let w = RandW::new(rng);
-        let x = rnd(rng, H, -1.0, 1.0);
+        let x = rnd(rng, H, -xs, xs);
         // logical cache [ctx, N, D]; row `pos` holds stale data the kernel must overwrite
         let mut kc0 = rnd(rng, ctx * N * D, -2.0, 2.0);
         let mut vc0 = rnd(rng, ctx * N * D, -1.0, 1.0);
@@ -142,13 +145,13 @@ async fn block(rng: &mut SmallRng, bench: bool) -> eyre::Result<bool> {
         let kt = fv(&ub(&l.kc.to_host::<${CRATE}::attn::KvCache>(&mut dev.pdma).await?.into_vec()));
         let vt = fv(&ub(&l.vc.to_host::<${CRATE}::attn::KvCache>(&mut dev.pdma).await?.into_vec()));
         let row = |t: &[f32]| -> Vec<f32> { (0..N * D).map(|i| t[cache_index(i / D, pos, i % D)]).collect() };
-        let name = format!("attn_block_c{c}(ctx={ctx})");
+        let name = format!("attn_block_c{c}(ctx={ctx},x~{xs})");
         ok &= check(&format!("{name}.k"), &row(&kt), &k_r, 0.02, 0.02);
         ok &= check(&format!("{name}.v"), &row(&vt), &v_r, 0.02, 0.01);
         ok &= check(&format!("{name}.x2"), &x2, &x2_r, 0.02, 0.01);
         ok &= check(&format!("{name}.h2"), &h2, &h2_r, 0.02, 0.02);
         ok &= check(&format!("{name}.logits"), &lg, &lg_r, 0.03, 0.02);
-        if bench {
+        if bench && xs == 1.0 {
             let mut lat = Vec::new();
             for i in 0..60 {
                 let t = Instant::now();

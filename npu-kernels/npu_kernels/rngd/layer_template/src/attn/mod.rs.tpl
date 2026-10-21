@@ -64,12 +64,12 @@ pub(crate) fn store_kv(
         .from_dm(&mut device.tdma, val);
 }
 
-/// `v / rms` (the deferred rmsnorm factor).
-fn scale_inv(
+/// `v / rms` (the deferred rmsnorm factor), one head per slice.
+fn scale_inv<S: M>(
     device: &mut Device,
-    v: &DmTensor<bf16, Chip, C1, SliceN, m![D]>,
-    rms_vrf: &VrfTensor<f32, Chip, C1, SliceN, m![1 # 8]>,
-) -> DmTensor<bf16, Chip, C1, SliceN, m![D]> {
+    v: &DmTensor<bf16, Chip, C1, S, m![D]>,
+    rms_vrf: &VrfTensor<f32, Chip, C1, S, m![1 # 8]>,
+) -> DmTensor<bf16, Chip, C1, S, m![D]> {
     device
         .main
         .begin(v.view())
