@@ -87,10 +87,25 @@ pub(crate) fn residual_rmsnorm_dm(
     let rms_vrf: VrfTensor<f32, Chip, EC, ES, m![1 # 8]> =
         device.sub.begin(rms.view()).fetch::<m![1], m![1 # 8]>().collect::<m![1], m![1 # 8]>().to_vrf();
 
-    // h2 = x2 * w / rms
+    // h2 = bf16(bf16(x2 / rms) * w) (HF RMSNorm: normalize, cast, multiply by the weight)
+    let y: DmTensor<bf16, Chip, EC, ES, EH> = device
+        .main
+        .begin(x2.view())
+        .fetch::<m![H % ${HH} / 16], m![H % 16]>()
+        .fetch_cast::<f32>()
+        .collect::<m![H % ${HH} / 8], m![H % 8]>()
+        .vector_init()
+        .vector_intra_slice_tag(TagMode::Zero)
+        .vector_narrow_split::<m![H % ${HH} / 4], m![H % 4]>()
+        .vector_fp_div(&rms_vrf)
+        .vector_widen_concat::<m![H % ${HH} / 8], m![H % 8]>()
+        .vector_final()
+        .cast::<bf16, m![H % 8 # 16]>()
+        .commit_trim::<m![H % 8]>()
+        .commit();
     let h2: DmTensor<bf16, Chip, EC, ES, EH> = device
         .main
-        .begin_interleaved::<Ip, _, _, _, _, _>(x2.view(), wd.view())
+        .begin_interleaved::<Ip, _, _, _, _, _>(y.view(), wd.view())
         .fetch::<m![H % ${HH} / 8, Ip], m![H % 8]>()
         .fetch_cast::<f32>()
         .collect::<m![H % ${HH} / 8, Ip], m![H % 8]>()
@@ -98,7 +113,6 @@ pub(crate) fn residual_rmsnorm_dm(
         .vector_intra_slice_unzip::<Ip, m![H % ${HH} / 8]>()
         .vector_narrow_split::<m![H % ${HH} / 4], m![H % 4]>()
         .vector_fp_zip(FpBinaryOp::MulF(FpMulAlu::Mul0))
-        .vector_fp_div(&rms_vrf)
         .vector_widen_concat::<m![H % ${HH} / 8], m![H % 8]>()
         .vector_final()
         .cast::<bf16, m![H % 8 # 16]>()
