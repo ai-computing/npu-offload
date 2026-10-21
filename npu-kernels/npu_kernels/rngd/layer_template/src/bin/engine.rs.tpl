@@ -3,13 +3,14 @@
 //! the table (CPU, bf16 weights from the safetensors mmap, overlapped with the chip), the expert combine and argmax.
 //! Single request, greedy, bf16; the prompt is fed token by token through the same decode path.
 //!
-//! usage: engine <model_dir> <prompt.json> <n_new>
-//!   prompt.json: {"ids": [...]}
+//! usage: engine <model_dir> <n_new> <case_dir>...
+//!   case_dir/prompt.json: {"ids": [...]}; case_dir/ref.json (optional, HF reference {"tokens": [...]})
+//!   per case: a teacher-forced run on ref.json tokens (when present) -> <OUT_DIR>/<case>.forced.json, then REPEAT
+//!   free (greedy) runs -> <OUT_DIR>/<case>.free.json (last repeat; each repeat's rate is printed)
 //! env:
 //!   PLACEMENT=expert_counts.json   per-layer expert counts; the E_T=${E} most used experts of each layer go on chip
 //!                                  (default: experts 0..E_T)
-//!   FORCE=ref.json                 teacher forcing: feed {"tokens": [...]} instead of the argmax (argmax still recorded)
-//!   OUT=result.json                tokens, per-step top-5 logits, timings, expert hit rate
+//!   OUT_DIR=.                      results: tokens, per-step top-5 logits, timings, expert hit rate
 //!   CPU_THREADS=16  REPEAT=1  LAYERS=<n> (debug: first n layers only)
 use furiosa_opt_std::prelude::*;
 use memmap2::Mmap;
@@ -277,22 +278,12 @@ fn top5(lg: &[u16]) -> Vec<(usize, f32)> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> eyre::Result<()> {
     let args: Vec<String> = std::env::args().collect();
-    eyre::ensure!(args.len() >= 4, "usage: engine <model_dir> <prompt.json> <n_new>");
-    let (model_dir, prompt, n_new) = (&args[1], &args[2], args[3].parse::<usize>()?);
+    eyre::ensure!(args.len() >= 4, "usage: engine <model_dir> <n_new> <case_dir>...");
+    let (model_dir, n_new, cases) = (&args[1], args[2].parse::<usize>()?, &args[3..]);
     rayon::ThreadPoolBuilder::new().num_threads(env("CPU_THREADS", 16)).build_global()?;
     let t0 = Instant::now();
     let w = Weights::open(model_dir)?;
     let n_layers = env("LAYERS", LAYERS).min(LAYERS);
-    let ids: Vec<usize> = serde_json::from_str::<serde_json::Value>(&std::fs::read_to_string(prompt)?)?["ids"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|v| v.as_u64().unwrap() as usize)
-        .collect();
-    let force: Option<Vec<usize>> = std::env::var("FORCE").ok().map(|p| {
-        let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(p).unwrap()).unwrap();
-        v["tokens"].as_array().unwrap().iter().map(|t| t.as_u64().unwrap() as usize).collect()
-    });
     // hot experts per layer
     let hot: Vec<Vec<usize>> = match std::env::var("PLACEMENT") {
         Ok(p) => {
@@ -373,63 +364,87 @@ async fn main() -> eyre::Result<()> {
     };
 
     let repeat = env("REPEAT", 1);
-    let mut result = serde_json::json!({});
-    for rep in 0..repeat {
-        eng.reset().await?;
-        eng.prof = Prof::default();
-        eng.hits = 0;
-        eng.misses = 0;
-        let tp = Instant::now();
-        for (p, &tok) in ids[..ids.len() - 1].iter().enumerate() {
-            eng.forward(tok, p).await?;
+    let out_dir = std::env::var("OUT_DIR").unwrap_or_else(|_| ".".into());
+    let tokens_of = |p: &str, key: &str| -> eyre::Result<Vec<usize>> {
+        let v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(p)?)?;
+        Ok(v[key].as_array().ok_or_else(|| eyre::eyre!("{p}: no {key}"))?.iter().map(|t| t.as_u64().unwrap() as usize).collect())
+    };
+    for case in cases {
+        let name = std::path::Path::new(case).file_name().unwrap().to_string_lossy().to_string();
+        let ids = tokens_of(&format!("{case}/prompt.json"), "ids")?;
+        let refp = format!("{case}/ref.json");
+        if std::path::Path::new(&refp).exists() {
+            let force = tokens_of(&refp, "tokens")?;
+            let r = run_case(&mut eng, &name, &ids, Some(&force), n_new, 0).await?;
+            std::fs::write(format!("{out_dir}/{name}.forced.json"), serde_json::to_string(&r)?)?;
         }
-        let prefill_s = tp.elapsed().as_secs_f64();
-        let mut cur = *ids.last().unwrap();
-        let mut toks = Vec::new();
-        let mut tops = Vec::new();
-        let mut step_ms = Vec::new();
-        for i in 0..n_new {
-            let t = Instant::now();
-            let hn = eng.forward(cur, ids.len() - 1 + i).await?;
-            let lg = eng.logits(&hn).await?;
-            let tp5 = top5(&lg);
-            step_ms.push(t.elapsed().as_secs_f64() * 1e3);
-            toks.push(tp5[0].0);
-            tops.push(tp5.iter().map(|&(i, v)| serde_json::json!([i, v])).collect::<Vec<_>>());
-            cur = match &force {
-                Some(f) if i < f.len() => f[i],
-                _ => tp5[0].0,
-            };
+        let mut r = serde_json::json!({});
+        for rep in 0..repeat {
+            r = run_case(&mut eng, &name, &ids, None, n_new, rep).await?;
         }
-        // decode rate: steps after the first generated token
-        let dec: Vec<f64> = step_ms[1..].to_vec();
-        let mut srt = dec.clone();
-        srt.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        let mean = dec.iter().sum::<f64>() / dec.len().max(1) as f64;
-        let med = if srt.is_empty() { 0.0 } else { srt[srt.len() / 2] };
-        let steps = (ids.len() - 1 + n_new) as f64;
-        let prof: BTreeMap<&str, f64> = eng.prof.0.iter().map(|(k, v)| (*k, v / steps * 1e3)).collect();
-        eprintln!(
-            "[engine] rep {rep}: prefill {} tok {:.2} s; decode {} tok mean {:.2} ms/tok ({:.1} tok/s) median {:.2} ms; hit {:.3}",
-            ids.len() - 1,
-            prefill_s,
-            n_new,
-            mean,
-            1e3 / mean,
-            med,
-            eng.hits as f64 / (eng.hits + eng.misses).max(1) as f64
-        );
-        eprintln!("[engine] per step (ms): {prof:?}");
-        result = serde_json::json!({
-            "tokens": toks, "top": tops, "step_ms": step_ms, "decode_ms_mean": mean, "decode_ms_median": med,
-            "tok_s": 1e3 / mean, "prefill_tokens": ids.len() - 1, "prefill_s": prefill_s,
-            "hit_rate": eng.hits as f64 / (eng.hits + eng.misses).max(1) as f64, "forced": force.is_some(),
-            "e_t": E_T, "layers": n_layers, "prof_ms_per_step": prof, "rep": rep,
-        });
-        println!("TOKENS {:?}", result["tokens"]);
-    }
-    if let Ok(p) = std::env::var("OUT") {
-        std::fs::write(p, serde_json::to_string(&result)?)?;
+        std::fs::write(format!("{out_dir}/{name}.free.json"), serde_json::to_string(&r)?)?;
     }
     Ok(())
+}
+
+async fn run_case(
+    eng: &mut Engine,
+    name: &str,
+    ids: &[usize],
+    force: Option<&[usize]>,
+    n_new: usize,
+    rep: usize,
+) -> eyre::Result<serde_json::Value> {
+    eng.reset().await?;
+    eng.prof = Prof::default();
+    eng.hits = 0;
+    eng.misses = 0;
+    let tp = Instant::now();
+    for (p, &tok) in ids[..ids.len() - 1].iter().enumerate() {
+        eng.forward(tok, p).await?;
+    }
+    let prefill_s = tp.elapsed().as_secs_f64();
+    let mut cur = *ids.last().unwrap();
+    let mut toks = Vec::new();
+    let mut tops = Vec::new();
+    let mut step_ms = Vec::new();
+    for i in 0..n_new {
+        let t = Instant::now();
+        let hn = eng.forward(cur, ids.len() - 1 + i).await?;
+        let lg = eng.logits(&hn).await?;
+        let tp5 = top5(&lg);
+        step_ms.push(t.elapsed().as_secs_f64() * 1e3);
+        toks.push(tp5[0].0);
+        tops.push(tp5.iter().map(|&(i, v)| serde_json::json!([i, v])).collect::<Vec<_>>());
+        cur = match force {
+            Some(f) if i < f.len() => f[i],
+            _ => tp5[0].0,
+        };
+    }
+    // decode rate: steps after the first generated token
+    let dec: Vec<f64> = step_ms[1..].to_vec();
+    let mut srt = dec.clone();
+    srt.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let mean = dec.iter().sum::<f64>() / dec.len().max(1) as f64;
+    let med = if srt.is_empty() { 0.0 } else { srt[srt.len() / 2] };
+    let steps = (ids.len() - 1 + n_new) as f64;
+    let prof: BTreeMap<&str, f64> = eng.prof.0.iter().map(|(k, v)| (*k, v / steps * 1e3)).collect();
+    let hit = eng.hits as f64 / (eng.hits + eng.misses).max(1) as f64;
+    let mode = if force.is_some() { "forced" } else { "free" };
+    eprintln!(
+        "[engine] {name} {mode} rep {rep}: prefill {} tok {:.2} s; decode {} tok mean {:.2} ms/tok ({:.1} tok/s) median {:.2} ms; hit {hit:.3}",
+        ids.len() - 1,
+        prefill_s,
+        n_new,
+        mean,
+        1e3 / mean,
+        med,
+    );
+    eprintln!("[engine] per step (ms): {prof:?}");
+    println!("TOKENS {name} {mode} {toks:?}");
+    Ok(serde_json::json!({
+        "case": name, "tokens": toks, "top": tops, "step_ms": step_ms, "decode_ms_mean": mean, "decode_ms_median": med,
+        "tok_s": 1e3 / mean, "prefill_tokens": ids.len() - 1, "prefill_s": prefill_s, "hit_rate": hit,
+        "forced": force.is_some(), "e_t": E_T, "layers": eng.n_layers, "prof_ms_per_step": prof, "rep": rep,
+    }))
 }
