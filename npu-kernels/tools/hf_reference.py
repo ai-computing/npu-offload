@@ -57,7 +57,8 @@ def main():
 
     def ids_of(text):
         msgs = [{"role": "user", "content": text}]
-        return tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True)
+        text = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)
+        return tok(text, add_special_tokens=False).input_ids
 
     def run(ids, n):
         x = torch.tensor([ids])
