@@ -171,9 +171,57 @@ struct Engine {
     hits: usize,
     misses: usize,
     prof: Prof,
+    /// CHECK=1: per layer, compare the chip results with the host oracle (same input x); HOSTPATH=1: continue with the
+    /// host results (all experts on the CPU), i.e. a host reference run
+    check: bool,
+    hostpath: bool,
+    hk: Vec<Vec<u16>>,
+    hv: Vec<Vec<u16>>,
+    errs: BTreeMap<&'static str, (f32, usize)>,
+}
+
+fn gemv_par(w: &[u16], x: &[f32], rows: usize, cols: usize) -> Vec<f32> {
+    (0..rows).into_par_iter().with_min_len(8).map(|i| dot(&w[i * cols..(i + 1) * cols], x)).collect()
+}
+
+/// max |a - b| / max |b|
+fn rel_err(a: &[u16], b: &[u16]) -> f32 {
+    let m = b.iter().map(|&v| bf2f(v).abs()).fold(0f32, f32::max).max(1e-20);
+    a.iter().zip(b).map(|(&x, &y)| (bf2f(x) - bf2f(y)).abs()).fold(0f32, f32::max) / m
 }
 
 impl Engine {
+    /// host oracle of the attention block + router of layer `l` for input `x` at `pos` (host KV cache)
+    fn host_block(&mut self, l: usize, x: &[u16], pos: usize) -> (Vec<u16>, Vec<u16>, Vec<u16>) {
+        let bw = self.w.block(l);
+        let xf: Vec<f32> = x.iter().map(|&v| bf2f(v)).collect();
+        let (cos, sin) = cos_sin(pos);
+        let h = rmsnorm(&xf, bw.w_in);
+        let q: Vec<f32> = gemv_par(bw.wq, &h, Q, H).into_iter().map(r).collect();
+        let k: Vec<f32> = gemv_par(bw.wk, &h, P, H).into_iter().map(r).collect();
+        let v: Vec<f32> = gemv_par(bw.wv, &h, P, H).into_iter().map(r).collect();
+        let (q, k) = if QK_NORM { (head_norm(&q, bw.qn), head_norm(&k, bw.kn)) } else { (q, k) };
+        let q = rope(&q, &cos, &sin);
+        let k = rope(&k, &cos, &sin);
+        for i in 0..P {
+            self.hk[l][pos * P + i] = f2bf(k[i]);
+            self.hv[l][pos * P + i] = f2bf(v[i]);
+        }
+        let a = attention_ref(&q, &self.hk[l], &self.hv[l], pos + 1);
+        let o: Vec<f32> = gemv_par(bw.wo, &a, H, Q).into_iter().map(r).collect();
+        let x2: Vec<f32> = o.iter().zip(&xf).map(|(&o, &x)| r(o + x)).collect();
+        let h2 = rmsnorm(&x2, bw.w_post);
+        let lg: Vec<u16> = gemv_par(bw.wr, &h2, NE, H).into_iter().map(f2bf).collect();
+        (x2.iter().map(|&v| f2bf(v)).collect(), h2.iter().map(|&v| f2bf(v)).collect(), lg)
+    }
+
+    fn err(&mut self, k: &'static str, l: usize, e: f32) {
+        let ent = self.errs.entry(k).or_insert((0.0, 0));
+        if e > ent.0 {
+            *ent = (e, l);
+        }
+    }
+
     /// one token through all layers; returns the final-norm hidden state (bf16 bits)
     async fn forward(&mut self, tok: usize, pos: usize) -> eyre::Result<Vec<u16>> {
         let mut t = Instant::now();
@@ -190,12 +238,26 @@ impl Engine {
             let h2 = ub(&self.s.h2.to_host::<VH>(&mut self.dev.pdma).await?.into_vec());
             let x2 = ub(&self.s.x2.to_host::<VH>(&mut self.dev.pdma).await?.into_vec());
             self.prof.tick("download", &mut t);
+            let (lg, h2, x2) = if self.check {
+                let (hx2, hh2, hlg) = self.host_block(l, &x, pos);
+                let (e1, e2, e3) = (rel_err(&x2, &hx2), rel_err(&h2, &hh2), rel_err(&lg, &hlg));
+                self.err("x2", l, e1);
+                self.err("h2", l, e2);
+                self.err("logits", l, e3);
+                if std::env::var("CHECK_VERBOSE").is_ok() {
+                    eprintln!("[check] pos {pos} layer {l}: rel err x2 {e1:.4} h2 {e2:.4} router {e3:.4}");
+                }
+                if self.hostpath { (hlg, hh2, hx2) } else { (lg, h2, x2) }
+            } else {
+                (lg, h2, x2)
+            };
+            t = Instant::now();
             let lgf: Vec<f32> = lg.iter().map(|&v| bf2f(v)).collect();
             let (sel, wts) = route(&lgf, None);
             let mut chip: Vec<(usize, usize)> = Vec::new(); // (k, slot)
             let mut cold: Vec<usize> = Vec::new(); // k
             for (k, &e) in sel.iter().enumerate() {
-                match self.slot_of[l][e] {
+                match if self.hostpath { None } else { self.slot_of[l][e] } {
                     Some(sl) => chip.push((k, sl)),
                     None => cold.push(k),
                 }
@@ -241,6 +303,22 @@ impl Engine {
                     acc[i] = r(acc[i] + r(bf2f(o[i]) * wts[k]));
                 }
             }
+            if self.check && !self.hostpath {
+                // all selected experts on the CPU vs the chip / CPU split
+                let hf: Vec<f32> = h2.iter().map(|&v| bf2f(v)).collect();
+                let mut acc2 = vec![0f32; H];
+                let mut order: Vec<usize> = (0..sel.len()).collect();
+                order.sort_by_key(|&k| sel[k]);
+                for k in order {
+                    let o = expert_cpu(self.w.expert(l, sel[k]), &hf);
+                    for i in 0..H {
+                        acc2[i] = r(acc2[i] + r(bf2f(o[i]) * wts[k]));
+                    }
+                }
+                let a: Vec<u16> = acc.iter().map(|&v| f2bf(v)).collect();
+                let b: Vec<u16> = acc2.iter().map(|&v| f2bf(v)).collect();
+                self.err("moe", l, rel_err(&a, &b));
+            }
             x = (0..H).map(|i| f2bf(bf2f(x2[i]) + acc[i])).collect();
             self.prof.tick("combine", &mut t);
         }
@@ -259,6 +337,10 @@ impl Engine {
     }
 
     async fn reset(&mut self) -> eyre::Result<()> {
+        for c in self.hk.iter_mut().chain(self.hv.iter_mut()) {
+            c.iter_mut().for_each(|v| *v = 0);
+        }
+        self.errs.clear();
         for l in self.layers.iter_mut() {
             l.kc = HostTensor::<bf16, ${CRATE}::attn::KvCache>::zero().to_hbm(&mut self.dev.pdma).await?;
             l.vc = HostTensor::<bf16, ${CRATE}::attn::KvCache>::zero().to_hbm(&mut self.dev.pdma).await?;
@@ -361,6 +443,11 @@ async fn main() -> eyre::Result<()> {
         hits: 0,
         misses: 0,
         prof: Prof::default(),
+        check: std::env::var("CHECK").is_ok() || std::env::var("HOSTPATH").is_ok(),
+        hostpath: std::env::var("HOSTPATH").is_ok(),
+        hk: if std::env::var("CHECK").is_ok() || std::env::var("HOSTPATH").is_ok() { vec![vec![0u16; T * CHUNKS[CHUNKS.len() - 1] * P]; n_layers] } else { vec![] },
+        hv: if std::env::var("CHECK").is_ok() || std::env::var("HOSTPATH").is_ok() { vec![vec![0u16; T * CHUNKS[CHUNKS.len() - 1] * P]; n_layers] } else { vec![] },
+        errs: BTreeMap::new(),
     };
 
     let repeat = env("REPEAT", 1);
@@ -441,6 +528,9 @@ async fn run_case(
         med,
     );
     eprintln!("[engine] per step (ms): {prof:?}");
+    if eng.check {
+        eprintln!("[check] max rel err (value, layer) over the run: {:?}", eng.errs);
+    }
     println!("TOKENS {name} {mode} {toks:?}");
     Ok(serde_json::json!({
         "case": name, "tokens": toks, "top": tops, "step_ms": step_ms, "decode_ms_mean": mean, "decode_ms_median": med,

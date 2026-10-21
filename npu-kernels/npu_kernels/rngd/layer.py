@@ -139,6 +139,8 @@ def plan_layer(g: LayerGeometry, chunks=(1, 2, 4), E_T: int = 64, K: int = 8, T:
     if g.heads % N:
         raise ValueError("heads must be a multiple of kv_heads")
     G = g.heads // N
+    if G != 8:
+        raise ValueError(f"{G} q heads per kv head: the attention template keeps G = 8 in the vector packet")
     Q, P = g.heads * D, N * D
     if D != 128:
         raise ValueError(f"head_dim={D}: the attention template assumes 128 (RoPE halves, 16-token slices)")
