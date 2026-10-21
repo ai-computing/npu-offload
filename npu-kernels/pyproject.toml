@@ -13,4 +13,4 @@ license = {text = "BSD-3-Clause"}
 include = ["npu_kernels*"]
 
 [tool.setuptools.package-data]
-"npu_kernels.rngd" = ["template/**/*", "gemv_template/**/*", "*.md"]
+"npu_kernels.rngd" = ["template/**/*", "gemv_template/**/*", "layer_template/**/*", "*.md"]

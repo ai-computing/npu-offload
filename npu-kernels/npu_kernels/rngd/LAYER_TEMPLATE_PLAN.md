@@ -52,3 +52,33 @@ slices); smaller models leave slices idle or do not tile at all, so each kernel 
 3. Remaining kernels (attention, epilogue, combine, router GEMV, lm_head), same checks.
 4. Host engine generated from ModelSpec; `engine_manifest.json` written from `engine_geometry(spec)` so the selector
    offers it. End to end: Qwen3-30B-A3B tokens vs HF (tie-aware), tok/s vs the Optimus path (15-18 tok/s today).
+
+## Status (2026-10-22, npu-offload#3)
+
+Implemented as `layer.py` (`LayerGeometry`, `plan_layer`, `generate_layer`) + `layer_template/`. What differs from the
+table above:
+
+- q/k/v GEMV: one rule for every geometry, the expert gate/up rule (A = 8192 / H row groups x H / 32 column blocks,
+  RPS = RW / (2A) rows per slice). Solar: A 2, RPS 512 (= today's `RS`); Qwen3: A 4, RPS 128, both clusters busy.
+- q path: q goes through HBM as `[N, G, D]` and is normalized / rotated one head per 256 / (N G) slices (Qwen3: 8);
+  k and v one head per 256 / N slices (Qwen3: 64). For q/k-norm models q and k are divided by the deferred input-norm
+  factor before the head norm: the norm's eps is not scale invariant, and skipping this broke layers 0-2 of Qwen3
+  (embeddings ~1e-2; relative error 0.2-0.8 per layer before the fix, 0.003-0.03 after).
+- attention: N / 2 kv heads per cluster, `SA = [N % (N/2), 1 # (8 / (N/2)), T / 16]`, otherwise unchanged.
+- o_proj: Ao = 8192 / Q row groups (Qwen3: 2, RPSo 256); the output goes through HBM into an epilogue layout with one
+  slice per cluster holding H / 2 (one 4 KB hop instead of geometry-specific reshapes).
+- post-norm: HF rounding (`bf16(bf16(x2 / rms) * w)`); the single-rounding form failed the Solar-geometry router check
+  on small activations.
+- router: GEMV on chip in the same launch (logits out with x2 and h2); scoring (softmax top-k for Qwen3) on the host.
+- LM head: generic GEMV (`_lm_plan`, rows padded to a multiple of the chunk; Qwen3 38 x 4032 rows).
+- experts: the expert generator's kernel with a resident hot table of E_T slots per layer (ids packed 7 bits per slot
+  when E_T > 64); experts outside the table run on the CPU (bf16 weights from the safetensors mmap), overlapped with
+  the chip.
+- host engine: `bin/engine` (one process, one card): embedding, top-k, CPU experts, HF-order bf16 combine, argmax.
+  Shared expert, sigmoid/group routing (Solar) and two-chip placement are not in the generated engine; Solar keeps the
+  hand-written engine.
+
+Limits: head_dim 128, G = 8 q heads per kv head, kv heads 4/8/16, H | 8192, Q | 8192, context <= 512 x max(chunks)
+(default 2048), decode only, one request.
+
+Results: `../../../experiments/2026-10-22-rngd-layer-templates-qwen3.md`.
